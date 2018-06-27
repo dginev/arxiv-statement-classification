@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+"""creates an .npz dataset from the llamapun-induced directory structure of an "AMS environment" dataset
+
+on arXiv, this script completes in ~1 hour and requires ~32 GB of RAM for the current (naive) in-memory setup
+
+Problem: naively loading the .npz result with np.load(path) allocates ~34 GB of RAM as well, and takes 3 minutes.
+         You would need a much more careful setup for machines with lesser RAM capacity.
+"""
+
 import os
 import numpy as np
 import zipfile
@@ -19,7 +28,7 @@ destination = "arxiv_ams.npz"
 
 labels = sorted(["acknowledgement", "algorithm", "assumption", "caption", "case", "condition", "conjecture", "corollary", "definition", "example",
                  "fact", "lemma", "notation", "other", "paragraph", "problem", "proof", "proposition", "question", "remark", "result", "step", "theorem"])
-vocab_file = "/data/datasets/embeddings-arXMLiv-08-2017/vocab.arxmliv.txt"
+vocab_file = "../data/vocab.arxmliv.txt"
 vocab_lines = open(vocab_file, "r").readlines()
 w_index = {}
 for v_index, line in enumerate(vocab_lines):
