@@ -13,9 +13,9 @@ import warnings
 import gc
 
 
-def load_data(path='data/arxiv_ams.npz', num_words=None, skip_top=0,
-              maxlen=None, test_split=0.2, seed=113,
-              start_char=1, oov_char=-1, index_from=3, **kwargs):
+def load_data(path='data/arxiv_ams.npz', num_words=200_000, skip_top=0,
+              maxlen=None, test_split=0.2, seed=521,
+              start_char=1, oov_char=2, index_from=2, **kwargs):
     """Loads the Reuters newswire classification dataset.
 
     # Arguments
@@ -50,13 +50,16 @@ def load_data(path='data/arxiv_ams.npz', num_words=None, skip_top=0,
     with np.load(path) as f:
         xs, labels = f['x'], f['y']
     # DEMO: Take first 1 mil for memory fit, for prototyping
-    xs = xs[:100_000]
-    labels = labels[:100_000]
+    xs = xs[:50_000]
+    labels = labels[:50_000]
 
     print("shuffling data...")
     np.random.seed(seed)
     indices = np.arange(len(xs))
-    np.random.shuffle(indices)
+    # shuffle a bit more thorough
+    for _ in range(5):
+        np.random.shuffle(indices)
+
     xs = xs[indices]
     labels = labels[indices]
 
@@ -85,8 +88,9 @@ def load_data(path='data/arxiv_ams.npz', num_words=None, skip_top=0,
 
     print("- oov char")
     # by convention, use -1 as OOV word
-    # reserve 'index_from' (=3 by default) characters:
+    # reserve 'index_from' (=2 by default, as the para index starts at 1) characters:
     # 0 (padding), 1 (start), 2 (OOV)
+    # 3 is the most common word ('the')
     if oov_char is not None:
         xs_len = int(len(xs))
         iterations = 0
