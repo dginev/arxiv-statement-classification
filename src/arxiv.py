@@ -54,8 +54,9 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     # TODO: BAD!!! If we are sampling a small amount from the data, it needs to preserve the distribution.
     #       At least grab a max per category.
 
-    # A "Zero Rule" classifier with this restriction will have accuracy of 0.077725805
-    max_per_class = 50_000
+    # A "Zero Rule" classifier with this restriction will have accuracy of 0.076
+    #               if strict classes are on, the zero rule accuracy would be 0.29
+    max_per_class = 50_000  # Leads to 659_216 total expressions
     print("reducing data to ", max_per_class, " per class...")
     selection_counter = {}
     xs_reduced = []
@@ -200,8 +201,7 @@ def get_word_index(path='data/arxiv_word_index.json'):
 def load_vocab():
     index_dict = {}
     with open('data/arxiv_word_index.json') as json_data:
-        index_dict = json.load(json_data)
-    return index_dict
+        return json.load(json_data)
 
 
 def load_glove():
@@ -209,8 +209,8 @@ def load_glove():
     with open('data/glove.arxmliv.5B.300d.txt') as glove_data:
         for line in glove_data:
             items = line.split()
-            key = items.pop(0)
-            glove[key] = [float(item) for item in items]
+            key = items[0]
+            glove[key] = np.asarray(items[1:], dtype='float32')
     return glove
 
 

@@ -17,15 +17,16 @@ import json
 
 from keras.preprocessing import sequence
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Embedding, LSTM, Bidirectional, Flatten
+from keras.layers import TimeDistributed, Dense, Dropout, Embedding, LSTM, Bidirectional, Flatten
 from keras import metrics
+from sklearn.metrics import classification_report
 
 import arxiv
 
-maxlen = 150  # 5? 10? sentences of 25 words each?
+maxlen = 150  # sentences of 25 words each? Also compare "15", 50" vs "250", "500" word window extremes
 # what is the optimum here? the average arXiv document seems to have 110 paragraphs ?!
-batch_size = 100
-strict_labels = False
+batch_size = 128
+strict_labels = True
 n_classes = 23  # ams classes/labels (0-22)
 if strict_labels:  # down to (0-10) if strict
     n_classes = 11
@@ -38,8 +39,8 @@ print(len(x_test), 'test sequences')
 gc.collect()
 
 print('Pad sequences (samples x time)')
-x_train = sequence.pad_sequences(x_train, maxlen=maxlen)
-x_test = sequence.pad_sequences(x_test, maxlen=maxlen)
+x_train = sequence.pad_sequences(x_train, maxlen=maxlen, padding='post')
+x_test = sequence.pad_sequences(x_test, maxlen=maxlen, padding='post')
 
 y_train = np.array(y_train)
 y_test = np.array(y_test)
@@ -56,8 +57,10 @@ gc.collect()
 print("setting up model layout...")
 model = Sequential()
 model.add(embedding_layer)
-model.add(Bidirectional(LSTM(75)))
-model.add(Dropout(0.25))
+model.add(Bidirectional(LSTM(maxlen*2, return_sequences=True)))
+model.add(Dropout(0.2))
+model.add(Bidirectional(LSTM(maxlen*2)))
+model.add(Dropout(0.2))
 model.add(Dense(n_classes, activation='softmax'))
 # try using different optimizers and different optimizer configs?
 model.compile(loss='sparse_categorical_crossentropy',
@@ -69,7 +72,8 @@ print(model.summary())
 
 model.fit(x_train, y_train,
           batch_size=batch_size,
-          epochs=10,
+          # increase epochs to 10-50 when we're at reasonable initial performance (0.8 or higher)
+          epochs=2,
           validation_split=0.2)
 
 # evaluate the model
@@ -79,35 +83,8 @@ print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
 # serialize model to JSON
 print("Saving model to disk...")
-model.save("model-64.h5")
-# model_json = model.to_json()
-# with open("model-64.json", "w") as json_file:
-#     json_file.write(model_json)
-print("Saved model to disk. Done!")
+model.save("model-2x300-c10.h5")
 
-#
-# LSTM(32) (sgd optimizer, metric sparse_categorical_accuracy) run:
-# _________________________________________________________________
-# Layer (type)                 Output Shape              Param #
-# =================================================================
-# embedding_1 (Embedding)      (None, 150, 300)          224002800
-# _________________________________________________________________
-# bidirectional_1 (Bidirection (None, 64)                85248
-# _________________________________________________________________
-# dropout_1 (Dropout)          (None, 64)                0
-# _________________________________________________________________
-# dense_1 (Dense)              (None, 23)                1495
-# =================================================================
-# Total params: 224,089,543
-# Trainable params: 86,743
-#
-# Train on 411703 samples, validate on 102926 samples
-# Epoch 1/2
-# 411703/411703 [==============================] - 2690s 7ms/step - loss: 2.3600 - sparse_categorical_accuracy: 0.2427
-#                                                             - val_loss: 2.1382 - val_sparse_categorical_accuracy: 0.3077
-# Epoch 2/2
-# 411703/411703 [==============================] - 2702s 7ms/step - loss: 2.0567 - sparse_categorical_accuracy: 0.3320 - val_loss: 1.9705 - val_sparse_categorical_accuracy: 0.3538
-# Evaluating model on test data...
-# sparse_categorical_accuracy: 35.39%
-# Saving model to disk...
-# Saved model to disk. Done!
+print("Per-class test measures:")
+y_pred = model.predict_classes(x_test, batch_size=1)
+print(classification_report(y_test, y_pred))
