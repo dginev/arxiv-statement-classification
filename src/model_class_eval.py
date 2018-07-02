@@ -17,6 +17,7 @@ import json
 
 import tensorflow as tf
 from keras.preprocessing import sequence
+import keras.models
 from keras.models import Sequential
 from keras.layers import TimeDistributed, Dense, Dropout, Embedding, LSTM, Bidirectional, Flatten
 from keras import metrics
@@ -58,42 +59,10 @@ print('x_test shape:', x_test.shape)
 print('y_train shape:', y_train.shape)
 print('y_test shape:', y_test.shape)
 
-embedding_layer = arxiv.build_embedding_layer(
-    maxlen=maxlen, batch_size=batch_size)
-gc.collect()
-
-print("setting up model layout...")
-model = Sequential()
-model.add(embedding_layer)
-model.add(Bidirectional(LSTM(maxlen*2, return_sequences=True)))
-model.add(Dropout(0.2))
-model.add(Bidirectional(LSTM(maxlen*2)))
-model.add(Dropout(0.2))
-# model.add(Dense(maxlen*2, activation='relu')) # ?
-model.add(Dense(n_classes, activation='softmax'))
-# try using different optimizers and different optimizer configs?
-model.compile(loss='sparse_categorical_crossentropy',
-              optimizer="adam",  # sgd ?
-              metrics=[metrics.sparse_categorical_accuracy])
-# summarize the model
-print('Training model...')
+print('Loading...')
+model = keras.models.load_model("models/model-2x300-c10.h5")
 print(model.summary())
 
-model.fit(x_train, y_train,
-          batch_size=batch_size,
-          # increase epochs to 10-50 when we're at reasonable initial performance (0.8 or higher)
-          epochs=2,
-          validation_split=0.2)
-
-# evaluate the model
-print("Evaluating model on test data...")
-scores = model.evaluate(x_test, y_test, verbose=0)
-print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
-
-# serialize model to JSON
-print("Saving model to disk...")
-model.save("model-2x300-c10.h5")
-
 print("Per-class test measures:")
-y_pred = model.predict_classes(x_test)
+y_pred = model.predict_classes(x_test, verbose=1)
 print(classification_report(y_test, y_pred))

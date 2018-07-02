@@ -1,4 +1,4 @@
-# LSTM(32), sgd optimizer, dense softmax run:
+# biLSTM(32), sgd optimizer, dense softmax run:
 First ever reasonable try
 
 ```
@@ -27,7 +27,7 @@ First ever reasonable try
  
 ```
 
-# LSTM(64), adam, dense softmax run:
+# biLSTM(64), adam, dense softmax run:
 
 ```
  Train on 411703 samples, validate on 102926 samples
@@ -53,7 +53,7 @@ First ever reasonable try
  sparse_categorical_accuracy: 44.05%
 ```
 
-# LSTM(75), adam, strict labels, dense softmax run:
+# biLSTM(75), adam, strict labels, dense softmax run:
 
 ```
  _________________________________________________________________
@@ -87,7 +87,7 @@ First ever reasonable try
  sparse_categorical_accuracy: 56.57%
 ```
 
-# LSTM(150), adam, strict labels, dense softmax run:
+# biLSTM(150), adam, strict labels, dense softmax run:
 Conclusion: LSTM 75 seems good enough? for the strict labels
 
 ```_________________________________________________________________
@@ -121,14 +121,14 @@ Evaluating model on test data...
 sparse_categorical_accuracy: 57.48%
 ```
 
-# LSTM(75), adam, strict labels, dense sigmoid run:
+# biLSTM(75), adam, strict labels, dense sigmoid run:
 Not better, sticking to softmax
 ```
 411703/411703 [==============================] - 1805s 4ms/step - loss: 1.3572 - sparse_categorical_accuracy: 0.5024
                                                             - val_loss: 1.2154 - val_sparse_categorical_accuracy: 0.5485
 
 ```
-# LSTM(75)+LSTM(75), (adam, strict labels, dense softmax) run:
+# biLSTM(75)+biLSTM(75), (adam, strict labels, dense softmax) run:
 
 ```
 Layer (type)                 Output Shape              Param #   
@@ -157,7 +157,7 @@ Epoch 1/3
 [stopped]
 ```
 
-# LSTM(7*n_classes)+LSTM(7*n_classes)+Dense(3*n_classes), batch size = 100
+# biLSTM(7*n_classes)+biLSTM(7*n_classes)+Dense(3*n_classes), batch size = 100
 ## strict labels
 
 ```_________________________________________________________________
@@ -246,3 +246,68 @@ Epoch 3/3
 Evaluating model on test data...
 sparse_categorical_accuracy: 44.74%
 ```
+
+# biLSTM(2*maxlen)+biLSTM(2*maxlen), batch size = 128, strict labels, 0.2 dropout
+
+```
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_1 (Embedding)      (None, 150, 300)          224002800 
+_________________________________________________________________
+bidirectional_1 (Bidirection (None, 150, 600)          1442400   
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 150, 600)          0         
+_________________________________________________________________
+bidirectional_2 (Bidirection (None, 600)               2162400   
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 600)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 11)                6611      
+=================================================================
+Total params: 227,614,211
+Trainable params: 3,611,411
+Non-trainable params: 224,002,800
+_________________________________________________________________
+
+Epoch 1/2
+411703/411703 [==============================] - 2833s 7ms/step - loss: 1.2634 - sparse_categorical_accuracy: 0.5302
+                                               - val_loss: 1.1509 - val_sparse_categorical_accuracy: 0.5680
+
+Epoch 2/2
+411703/411703 [==============================] - 2828s 7ms/step - loss: 1.1111 - sparse_categorical_accuracy: 0.5785 
+                                                            - val_loss: 1.1067 - val_sparse_categorical_accuracy: 0.5800
+Evaluating model on test data...
+sparse_categorical_accuracy: 57.83%
+
+```
+
+## Per-class test measures:
+```
+128658/128658 [==============================] - 1037s 8ms/step
+             precision    recall  f1-score   support
+
+1 definition 0.65      0.74      0.69     12531
+2 example    0.56      0.53      0.54      9511
+3 notation   0.56      0.37      0.45      9818
+4 problem    0.61      0.69      0.64      5453
+5 proof      0.63      0.71      0.67      9270
+6 propositn. 0.56      0.84      0.67     37708
+7 question   0.29      0.08      0.12      1376
+8 remark     0.56      0.53      0.54     12016
+9 theorem    0.51      0.18      0.27     20012
+10 other     0.64      0.39      0.49     10963
+
+avg / total       0.57      0.58      0.55    128658
+
+```
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
