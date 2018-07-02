@@ -34,19 +34,21 @@ K.set_session(session)
 maxlen = 150  # sentences of 25 words each? Also compare "15", 50" vs "250", "500" word window extremes
 # what is the optimum here? the average arXiv document seems to have 110 paragraphs ?!
 batch_size = 128  # 32, 64, 128
-strict_labels = 'envs-only'
+strict_labels = 'f1-envs'
 n_classes = 23  # ams classes/labels (0-22)
 if strict_labels:  # down to (0-10) if strict
     if strict_labels == "envs-only":
         n_classes = 22
     elif strict_labels == "strict-envs-only":
         n_classes = 10
+    elif strict_labels == "f1-envs":
+        n_classes = 8
     else:
         n_classes = 11
 
 print('Loading data...')
 (x_train, y_train), (x_test, y_test) = arxiv.load_data(
-    maxlen=maxlen, strict_labels=strict_labels)
+    maxlen=maxlen, strict_labels=strict_labels, full_data=True)
 print(len(x_train), 'train sequences')
 print(len(x_test), 'test sequences')
 gc.collect()
@@ -86,7 +88,7 @@ print(model.summary())
 model.fit(x_train, y_train,
           batch_size=batch_size,
           # increase epochs to 10-50 when we're at reasonable initial performance (0.8 or higher)
-          epochs=2,
+          epochs=10,
           validation_split=0.2)
 
 # evaluate the model
@@ -96,7 +98,7 @@ print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
 # serialize model to JSON
 print("Saving model to disk...")
-model.save("model-5x129-c23.h5")
+model.save("model-2x150-f1-8-classes-big.h5")
 
 print("Per-class test measures:")
 y_pred = model.predict_classes(x_test, verbose=1)

@@ -369,3 +369,160 @@ Per-class test measures:
 avg / total       0.44      0.44      0.43    128658
 ```
 
+## Dropping `Other` class
+```
+Train on 382157 samples, validate on 95540 samples
+Epoch 1/2
+382157/382157 [==============================] - 2666s 7ms/step - loss: 1.7980 - sparse_categorical_accuracy: 0.3975
+                                                            - val_loss: 1.6284 - val_sparse_categorical_accuracy: 0.4455
+Epoch 2/2
+382157/382157 [==============================] - 2639s 7ms/step - loss: 1.5923 - sparse_categorical_accuracy: 0.4549
+                                                            - val_loss: 1.5718 - val_sparse_categorical_accuracy: 0.4625
+Evaluating model on test data...
+sparse_categorical_accuracy: 46.11%
+
+             precision    recall  f1-score   support
+
+          0       0.99      0.99      0.99       858
+          1       0.76      0.75      0.75      2593
+          2       0.49      0.65      0.56      4641
+          3       0.77      0.65      0.70       240
+          4       0.41      0.21      0.28       837
+          5       0.45      0.01      0.01       657
+          6       0.36      0.38      0.37      7988
+          7       0.29      0.23      0.26     10102
+          8       0.60      0.72      0.65      9938
+          9       0.48      0.55      0.51      9511
+         10       0.34      0.18      0.24      3526
+         11       0.28      0.45      0.34     10097
+         12       0.46      0.58      0.51      9818
+         13       0.39      0.08      0.13       641
+         14       0.74      0.54      0.62      5453
+         15       0.66      0.75      0.70      9270
+         16       0.24      0.14      0.17      9954
+         17       0.30      0.01      0.01      1376
+         18       0.60      0.67      0.63      9378
+         19       0.00      0.00      0.00       553
+         20       0.34      0.14      0.20      2082
+         21       0.32      0.25      0.28      9912
+
+avg / total       0.45      0.46      0.44    119425
+
+```
+
+# BiLSTM(maxlen)+BiLSTM(maxlen) with "10 best f1"-classes
+
+```
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_1 (Embedding)      (None, 150, 300)          224002800 
+_________________________________________________________________
+bidirectional_1 (Bidirection (None, 150, 300)          541200    
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 150, 300)          0         
+_________________________________________________________________
+bidirectional_2 (Bidirection (None, 300)               541200    
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 300)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 11)                3311      
+=================================================================
+Total params: 225,088,511
+Trainable params: 1,085,711
+Non-trainable params: 224,002,800
+_________________________________________________________________
+
+Train on 198123 samples, validate on 49531 samples
+Epoch 1/2
+198123/198123 [==============================] - 1363s 7ms/step - loss: 1.0868 - sparse_categorical_accuracy: 0.5996 
+                                                            - val_loss: 0.9214 - val_sparse_categorical_accuracy: 0.6617
+Epoch 2/2
+198123/198123 [==============================] - 1346s 7ms/step - loss: 0.8849 - sparse_categorical_accuracy: 0.6731 
+                                                            - val_loss: 0.8629 - val_sparse_categorical_accuracy: 0.6830
+Evaluating model on test data...
+sparse_categorical_accuracy: 68.01%
+
+Per-class test measures:
+61914/61914 [==============================] - 510s 8ms/step
+             precision    recall  f1-score   support
+
+          0       0.99      1.00      0.99       863
+          1       0.78      0.80      0.79      2602
+          2       0.85      0.68      0.75       242
+          3       0.76      0.74      0.75      9298
+          4       0.71      0.82      0.76      4659
+          5       0.66      0.78      0.71      9963
+          6       0.63      0.58      0.61      9543
+          7       0.59      0.53      0.56      9863
+          8       0.76      0.57      0.65      5470
+          9       0.65      0.71      0.68      9411
+
+avg / total       0.68      0.68      0.68     61914
+
+```
+
+## 9 f1-best classes
+
+```
+Train on 166560 samples, validate on 41641 samples
+Epoch 1/3
+166560/166560 [==============================] - 1168s 7ms/step - loss: 0.9267 - sparse_categorical_accuracy: 0.6690 - val_loss: 0.7516 - val_sparse_categorical_accuracy: 0.7354
+Epoch 2/3
+166560/166560 [==============================] - 1158s 7ms/step - loss: 0.7200 - sparse_categorical_accuracy: 0.7454 - val_loss: 0.6904 - val_sparse_categorical_accuracy: 0.7561
+Epoch 3/3
+166560/166560 [==============================] - 1169s 7ms/step - loss: 0.6499 - sparse_categorical_accuracy: 0.7700 - val_loss: 0.6757 - val_sparse_categorical_accuracy: 0.7655
+
+Evaluating model on test data...
+sparse_categorical_accuracy: 76.30%
+
+Per-class test measures:
+52051/52051 [==============================] - 420s 8ms/step
+                 precision    recall  f1-score   support
+      
+acknowledgement  0       0.99      1.00      0.99       863
+algorithm        1       0.83      0.77      0.80      2602
+caption          2       0.73      0.72      0.72       242
+proof            3       0.74      0.80      0.77      9298
+assumption       4       0.77      0.82      0.79      4659
+definition       5       0.85      0.86      0.85      9963
+problem          6       0.66      0.59      0.62      9543
+remark           7       0.88      0.83      0.85      5470
+example          8       0.69      0.72      0.70      9411
+
+avg / total       0.76      0.76      0.76     52051
+
+
+```
+
+## 8 f1-best classes
+
+```
+Train on 136392 samples, validate on 34098 samples
+
+Epoch 1/3
+136392/136392 [==============================] - 957s 7ms/step - loss: 0.7353 - sparse_categorical_accuracy: 0.7406 - val_loss: 0.5619 - val_sparse_categorical_accuracy: 0.8039
+Epoch 2/3
+136392/136392 [==============================] - 948s 7ms/step - loss: 0.5385 - sparse_categorical_accuracy: 0.8121 - val_loss: 0.5176 - val_sparse_categorical_accuracy: 0.8188
+Epoch 3/3
+136392/136392 [==============================] - 952s 7ms/step - loss: 0.4753 - sparse_categorical_accuracy: 0.8333 - val_loss: 0.4958 - val_sparse_categorical_accuracy: 0.8291
+
+Evaluating model on test data...
+sparse_categorical_accuracy: 82.90%
+
+Per-class test measures:
+42623/42623 [==============================] - 347s 8ms/step
+                    precision    recall  f1-score   support
+
+ acknowledgement 0       0.99      1.00      1.00       864
+ algorithm       1       0.80      0.82      0.81      2609
+ caption         2       0.73      0.74      0.74       243
+ proof           3       0.81      0.82      0.81      9324
+ assumption      4       0.79      0.83      0.81      4674
+ definition      5       0.85      0.89      0.87      9987
+ problem         6       0.91      0.82      0.86      5487
+ remark          7       0.80      0.77      0.79      9435
+
+avg / total       0.83      0.83      0.83     42623
+
+```

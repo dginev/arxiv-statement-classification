@@ -16,7 +16,7 @@ from keras.layers import Embedding
 
 def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
               maxlen=None, test_split=0.2, seed=521,
-              start_char=1, oov_char=2, index_from=2, strict_labels=False, **kwargs):
+              start_char=1, oov_char=2, index_from=2, strict_labels=False, full_data=False, **kwargs):
     """Loads the Reuters newswire classification dataset.
 
     # Arguments
@@ -48,38 +48,33 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     # path = get_file(path, origin='https://s3.amazonaws.com/text-datasets/reuters.npz',
     #                 file_hash='87aedbeb0cb229e378797a632c1997b6')
 
+    if full_data:
+        path = "arxiv_ams.npz"
     with np.load(path) as f:
         xs, labels = f['x'], f['y']
 
-    # TODO: BAD!!! If we are sampling a small amount from the data, it needs to preserve the distribution.
-    #       At least grab a max per category.
+    if not full_data:
+        # TODO: BAD!!! If we are sampling a small amount from the data, it needs to preserve the distribution.
+        #       At least grab a max per category.
 
-    # A "Zero Rule" classifier with this restriction will have accuracy of 0.076
-    #               if strict classes are on, the zero rule accuracy would be 0.29
-    max_per_class = 50_000  # Leads to 659_216 total expressions
-    print("reducing data to ", max_per_class, " per class...")
-    selection_counter = {}
-    xs_reduced = []
-    labels_reduced = []
+        # A "Zero Rule" classifier with this restriction will have accuracy of 0.076
+        #               if strict classes are on, the zero rule accuracy would be 0.29
+        max_per_class = 50_000  # Leads to 659_216 total expressions
+        print("reducing data to ", max_per_class, " per class...")
+        selection_counter = {}
+        xs_reduced = []
+        labels_reduced = []
 
-    for (idx, label) in enumerate(labels):
-        if not(label in selection_counter):
-            selection_counter[label] = 0
-        if selection_counter[label] < max_per_class:
-            selection_counter[label] += 1
-            xs_reduced.append(xs[idx])
-            labels_reduced.append(label)
-    xs = np.array(xs_reduced)
-    labels = np.array(labels_reduced)
-    gc.collect()
-
-    print("shuffling data...")
-    np.random.seed(seed)
-    indices = np.arange(len(xs))
-    np.random.shuffle(indices)
-
-    xs = xs[indices]
-    labels = labels[indices]
+        for (idx, label) in enumerate(labels):
+            if not(label in selection_counter):
+                selection_counter[label] = 0
+            if selection_counter[label] < max_per_class:
+                selection_counter[label] += 1
+                xs_reduced.append(xs[idx])
+                labels_reduced.append(label)
+        xs = np.array(xs_reduced)
+        labels = np.array(labels_reduced)
+        gc.collect()
 
     if strict_labels:
         # strict_dict = {
@@ -149,6 +144,41 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
             print("Reducing to 9 label classes")
             other_label = 10
             labels = np.array([int(stricter_map[l]) for l in labels])
+        elif strict_labels == "f1-envs":
+            # (as evaluated on a 2 layer biLSTM(150))
+            # Based on experimental f1-score on the full 23 classes where:
+            #
+            # >0.5 assumption 2, definition 8, example 9, notation 12, problem 15, remark 19
+            # >0.7 algorithm 1, caption 3, proof 16,
+            # >0.8
+            # >0.9 acknowledgement 0
+            # Rearrange label indices in decreasing expected f1
+            #
+            # Down to 10 "high" performing label classes
+            # First attempt, 68% f1
+            # whitelist = {0: 0, 1: 1, 3: 2, 16: 3,
+            #              2: 4, 8: 5, 9: 6, 12: 7, 15: 8, 19: 9}
+            #
+            # Second attempt, drop worst (notation), % f1:
+            # whitelist = {0: 0, 1: 1, 3: 2, 16: 3,
+            #              2: 4, 8: 5, 9: 6, 15: 7, 19: 8}
+            #
+            # Third attempt, also drop next worst (example), % f1:
+            whitelist = {0: 0, 1: 1, 3: 2, 16: 3,
+                         2: 4, 8: 5, 15: 6, 19: 7}
+
+            xs_env = []
+            labels_env = []
+            other_label = len(whitelist)
+            print("using f1-based label whitelist of size ", len(whitelist)+1)
+            for (idx, label) in enumerate(labels):
+                xs_env.append(xs[idx])
+                if label in whitelist:
+                    labels_env.append(whitelist[label])
+                else:
+                    labels_env.append(other_label)
+            xs = np.array(xs_env)
+            labels = np.array(labels_env)
         elif strict_labels != "envs-only":
             print("Reducing to 10 label classes")
             other_label = 10
@@ -167,6 +197,15 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
                     labels_env.append(label)
             xs = np.array(xs_env)
             labels = np.array(labels_env)
+        gc.collect()
+
+    print("shuffling data...")
+    np.random.seed(seed)
+    indices = np.arange(len(xs))
+    np.random.shuffle(indices)
+
+    xs = xs[indices]
+    labels = labels[indices]
 
     # Might as well report a summary of what is in the labels...
     label_summary = dict.fromkeys(range(0, 23), 0)
