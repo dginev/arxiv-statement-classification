@@ -82,7 +82,6 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     labels = labels[indices]
 
     if strict_labels:
-        print("Reducing to 10 strict labels, starting at 1")
         # strict_dict = {
         #     "definition": 1,
         #     "example": 2,
@@ -120,12 +119,60 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
             21: 8,
             22: 9
         }
-        labels = np.array([int(strict_map[l]) for l in labels])
+        stricter_map = {
+            0: 10,
+            1: 1,
+            2: 6,
+            3: 10,
+            4: 6,
+            5: 6,
+            6: 6,
+            7: 6,
+            8: 1,
+            9: 2,
+            10: 6,
+            11: 10,
+            12: 10,
+            13: 10,
+            14: 10,
+            15: 4,
+            16: 5,
+            17: 6,
+            18: 10,
+            19: 8,
+            20: 8,
+            21: 8,
+            22: 10
+        }
+        other_label = 13
+        if strict_labels == "strict-envs-only":
+            print("Reducing to 9 label classes")
+            other_label = 10
+            labels = np.array([int(stricter_map[l]) for l in labels])
+        elif strict_labels != "envs-only":
+            print("Reducing to 10 label classes")
+            other_label = 10
+            labels = np.array([int(strict_map[l]) for l in labels])
+
+        if strict_labels == "envs-only" or strict_labels == "strict-envs-only":
+            print("ignoring Other category from dataset")
+            xs_env = []
+            labels_env = []
+            for (idx, label) in enumerate(labels):
+                if label != other_label:
+                    if label > other_label:
+                        # the labels need to be in a tight integer sequence, for training to work smoothly, so close the gap we open by removing Other
+                        label = label-1
+                    xs_env.append(xs[idx])
+                    labels_env.append(label)
+            xs = np.array(xs_env)
+            labels = np.array(labels_env)
 
     # Might as well report a summary of what is in the labels...
     label_summary = dict.fromkeys(range(0, 23), 0)
     for label in labels:
         label_summary[label] += 1
+    label_summary = {k: v for k, v in label_summary.items() if v > 0}
     print("Label summary: ", label_summary)
 
     print("preparing sets...")

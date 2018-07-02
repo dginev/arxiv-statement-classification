@@ -1,1 +1,25 @@
-{"acknowledgement": 0, "algorithm": 1, "assumption": 2, "caption": 3, "case": 4, "condition": 5, "conjecture": 6, "corollary": 7, "definition": 8, "example": 9, "fact": 10, "lemma": 11, "notation": 12, "other": 13, "paragraph": 14, "problem": 15, "proof": 16, "proposition": 17, "question": 18, "remark": 19, "result": 20, "step": 21, "theorem": 22}
+{
+  "acknowledgement": 0,
+  "algorithm": 1,
+  "assumption": 2,
+  "caption": 3,
+  "case": 4,
+  "condition": 5,
+  "conjecture": 6,
+  "corollary": 7,
+  "definition": 8,
+  "example": 9,
+  "fact": 10,
+  "lemma": 11,
+  "notation": 12,
+  "other": 13,
+  "paragraph": 14,
+  "problem": 15,
+  "proof": 16,
+  "proposition": 17,
+  "question": 18,
+  "remark": 19,
+  "result": 20,
+  "step": 21,
+  "theorem": 22
+}

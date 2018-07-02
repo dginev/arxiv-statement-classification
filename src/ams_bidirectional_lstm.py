@@ -33,11 +33,16 @@ K.set_session(session)
 
 maxlen = 150  # sentences of 25 words each? Also compare "15", 50" vs "250", "500" word window extremes
 # what is the optimum here? the average arXiv document seems to have 110 paragraphs ?!
-batch_size = 128
-strict_labels = True
+batch_size = 128  # 32, 64, 128
+strict_labels = 'envs-only'
 n_classes = 23  # ams classes/labels (0-22)
 if strict_labels:  # down to (0-10) if strict
-    n_classes = 11
+    if strict_labels == "envs-only":
+        n_classes = 22
+    elif strict_labels == "strict-envs-only":
+        n_classes = 10
+    else:
+        n_classes = 11
 
 print('Loading data...')
 (x_train, y_train), (x_test, y_test) = arxiv.load_data(
@@ -65,11 +70,10 @@ gc.collect()
 print("setting up model layout...")
 model = Sequential()
 model.add(embedding_layer)
-model.add(Bidirectional(LSTM(maxlen*2, return_sequences=True)))
+model.add(Bidirectional(LSTM(maxlen, return_sequences=True)))
 model.add(Dropout(0.2))
-model.add(Bidirectional(LSTM(maxlen*2)))
+model.add(Bidirectional(LSTM(maxlen)))
 model.add(Dropout(0.2))
-# model.add(Dense(maxlen*2, activation='relu')) # ?
 model.add(Dense(n_classes, activation='softmax'))
 # try using different optimizers and different optimizer configs?
 model.compile(loss='sparse_categorical_crossentropy',
@@ -92,8 +96,8 @@ print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
 # serialize model to JSON
 print("Saving model to disk...")
-model.save("model-2x300-c10.h5")
+model.save("model-5x129-c23.h5")
 
 print("Per-class test measures:")
-y_pred = model.predict_classes(x_test)
+y_pred = model.predict_classes(x_test, verbose=1)
 print(classification_report(y_test, y_pred))
