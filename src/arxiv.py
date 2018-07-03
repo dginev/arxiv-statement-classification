@@ -60,6 +60,8 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     #               if strict classes are on, the zero rule accuracy would be 0.29
     max_per_class = 50_000  # Leads to 659_216 total expressions
     if full_data:
+        # A "Zero Rule" classifier with this restriction and f1-env will have accuracy of 0.62
+        #   total paragraphs would be 14,740,530, with Other numbered at 9,137,806
         max_per_class = 5_000_000
 
     # Also drops empty rows, and rows with NaN, just in case
