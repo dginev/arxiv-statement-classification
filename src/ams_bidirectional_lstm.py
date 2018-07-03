@@ -42,7 +42,7 @@ if strict_labels:  # down to (0-10) if strict
     elif strict_labels == "strict-envs-only":
         n_classes = 10
     elif strict_labels == "f1-envs":
-        n_classes = 8
+        n_classes = 9
     else:
         n_classes = 11
 

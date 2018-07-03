@@ -49,32 +49,37 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     #                 file_hash='87aedbeb0cb229e378797a632c1997b6')
 
     if full_data:
-        path = "arxiv_ams.npz"
+        path = "data/arxiv_ams.npz"
     with np.load(path) as f:
         xs, labels = f['x'], f['y']
 
-    if not full_data:
-        # TODO: BAD!!! If we are sampling a small amount from the data, it needs to preserve the distribution.
-        #       At least grab a max per category.
+    # TODO: BAD!!! If we are sampling a small amount from the data, it needs to preserve the distribution.
+    #       At least grab a max per category.
 
-        # A "Zero Rule" classifier with this restriction will have accuracy of 0.076
-        #               if strict classes are on, the zero rule accuracy would be 0.29
-        max_per_class = 50_000  # Leads to 659_216 total expressions
-        print("reducing data to ", max_per_class, " per class...")
-        selection_counter = {}
-        xs_reduced = []
-        labels_reduced = []
+    # A "Zero Rule" classifier with this restriction will have accuracy of 0.076
+    #               if strict classes are on, the zero rule accuracy would be 0.29
+    max_per_class = 50_000  # Leads to 659_216 total expressions
+    if full_data:
+        max_per_class = 500_000
 
-        for (idx, label) in enumerate(labels):
-            if not(label in selection_counter):
-                selection_counter[label] = 0
-            if selection_counter[label] < max_per_class:
+    # Also drops empty rows, and rows with NaN, just in case
+    print("reducing data to ", max_per_class, " per class...")
+    selection_counter = {}
+    xs_reduced = []
+    labels_reduced = []
+
+    for (idx, label) in enumerate(labels):
+        if not(label in selection_counter):
+            selection_counter[label] = 0
+        if selection_counter[label] < max_per_class:
+            x = xs[idx]
+            if len(x) > 0 and not(np.isnan(np.min(x))):
                 selection_counter[label] += 1
-                xs_reduced.append(xs[idx])
+                xs_reduced.append(x)
                 labels_reduced.append(label)
-        xs = np.array(xs_reduced)
-        labels = np.array(labels_reduced)
-        gc.collect()
+    xs = np.array(xs_reduced)
+    labels = np.array(labels_reduced)
+    gc.collect()
 
     if strict_labels:
         # strict_dict = {
@@ -145,7 +150,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
             other_label = 10
             labels = np.array([int(stricter_map[l]) for l in labels])
         elif strict_labels == "f1-envs":
-            # (as evaluated on a 2 layer biLSTM(150))
+            # (as evaluated on a 2 layer biLSTM(150)+biLSTM(150))
             # Based on experimental f1-score on the full 23 classes where:
             #
             # >0.5 assumption 2, definition 8, example 9, notation 12, problem 15, remark 19
@@ -206,7 +211,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
 
     xs = xs[indices]
     labels = labels[indices]
-
+    gc.collect()
     # Might as well report a summary of what is in the labels...
     label_summary = dict.fromkeys(range(0, 23), 0)
     for label in labels:
@@ -215,7 +220,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     print("Label summary: ", label_summary)
 
     print("preparing sets...")
-    print("- start char")
+    print("- start char and index_from")
     if start_char is not None:
         xs_len = len(xs)
         iterations = 0
@@ -223,17 +228,22 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
             xs[iterations] = [start_char] + \
                 [w + index_from for w in xs[iterations]]
             iterations += 1
+            if iterations % 1_000_000 == 0:
+                print("Iterations: ", iterations)
+                gc.collect()
     elif index_from:
         xs_len = int(len(xs))
         iterations = 0
         while iterations < xs_len:
             xs[iterations] = [w + index_from for w in xs[iterations]]
             iterations += 1
+            if iterations % 1_000_000 == 0:
+                print("Iterations: ", iterations)
+                gc.collect()
 
-    print("- maxlen")
     if maxlen:
+        print("- maxlen")
         xs, labels = _remove_long_seq(maxlen, xs, labels)
-    print("- num words")
     if not num_words:
         num_words = max([max(x) for x in xs])
 
@@ -249,6 +259,10 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
             xs[iterations] = [w if skip_top <= w <
                               num_words else oov_char for w in xs[iterations]]
             iterations += 1
+            if iterations % 1_000_000 == 0:
+                print("Iterations: ", iterations)
+                gc.collect()
+
     else:
         xs_len = int(len(xs))
         iterations = 0
@@ -256,6 +270,9 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
             xs[iterations] = [w for w in xs[iterations]
                               if skip_top <= w < num_words]
             iterations += 1
+            if iterations % 1_000_000 == 0:
+                print("Iterations: ", iterations)
+                gc.collect()
 
     idx = int(len(xs) * (1 - test_split))
     print("performing train/test cutoff at index ", idx, "/", len(xs), '...')

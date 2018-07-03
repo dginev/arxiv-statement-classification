@@ -467,11 +467,14 @@ avg / total       0.68      0.68      0.68     61914
 ```
 Train on 166560 samples, validate on 41641 samples
 Epoch 1/3
-166560/166560 [==============================] - 1168s 7ms/step - loss: 0.9267 - sparse_categorical_accuracy: 0.6690 - val_loss: 0.7516 - val_sparse_categorical_accuracy: 0.7354
+166560/166560 [==============================] - 1168s 7ms/step - loss: 0.9267 - sparse_categorical_accuracy: 0.6690
+                                                            - val_loss: 0.7516 - val_sparse_categorical_accuracy: 0.7354
 Epoch 2/3
-166560/166560 [==============================] - 1158s 7ms/step - loss: 0.7200 - sparse_categorical_accuracy: 0.7454 - val_loss: 0.6904 - val_sparse_categorical_accuracy: 0.7561
+166560/166560 [==============================] - 1158s 7ms/step - loss: 0.7200 - sparse_categorical_accuracy: 0.7454 
+                                                            - val_loss: 0.6904 - val_sparse_categorical_accuracy: 0.7561
 Epoch 3/3
-166560/166560 [==============================] - 1169s 7ms/step - loss: 0.6499 - sparse_categorical_accuracy: 0.7700 - val_loss: 0.6757 - val_sparse_categorical_accuracy: 0.7655
+166560/166560 [==============================] - 1169s 7ms/step - loss: 0.6499 - sparse_categorical_accuracy: 0.7700 
+                                                            - val_loss: 0.6757 - val_sparse_categorical_accuracy: 0.7655
 
 Evaluating model on test data...
 sparse_categorical_accuracy: 76.30%
@@ -501,11 +504,14 @@ avg / total       0.76      0.76      0.76     52051
 Train on 136392 samples, validate on 34098 samples
 
 Epoch 1/3
-136392/136392 [==============================] - 957s 7ms/step - loss: 0.7353 - sparse_categorical_accuracy: 0.7406 - val_loss: 0.5619 - val_sparse_categorical_accuracy: 0.8039
+136392/136392 [==============================] - 957s 7ms/step - loss: 0.7353 - sparse_categorical_accuracy: 0.7406
+                                                           - val_loss: 0.5619 - val_sparse_categorical_accuracy: 0.8039
 Epoch 2/3
-136392/136392 [==============================] - 948s 7ms/step - loss: 0.5385 - sparse_categorical_accuracy: 0.8121 - val_loss: 0.5176 - val_sparse_categorical_accuracy: 0.8188
+136392/136392 [==============================] - 948s 7ms/step - loss: 0.5385 - sparse_categorical_accuracy: 0.8121 
+                                                           - val_loss: 0.5176 - val_sparse_categorical_accuracy: 0.8188
 Epoch 3/3
-136392/136392 [==============================] - 952s 7ms/step - loss: 0.4753 - sparse_categorical_accuracy: 0.8333 - val_loss: 0.4958 - val_sparse_categorical_accuracy: 0.8291
+136392/136392 [==============================] - 952s 7ms/step - loss: 0.4753 - sparse_categorical_accuracy: 0.8333 
+                                                           - val_loss: 0.4958 - val_sparse_categorical_accuracy: 0.8291
 
 Evaluating model on test data...
 sparse_categorical_accuracy: 82.90%
@@ -525,4 +531,38 @@ Per-class test measures:
 
 avg / total       0.83      0.83      0.83     42623
 
+```
+
+## 8 f1-best classes + other class
+
+```
+Train on 411703 samples, validate on 102926 samples
+Epoch 1/3
+411703/411703 [==============================] - 2822s 7ms/step - loss: 0.7073 - sparse_categorical_accuracy: 0.7478 
+                                                            - val_loss: 0.6183 - val_sparse_categorical_accuracy: 0.7762
+Epoch 2/3
+411703/411703 [==============================] - 2812s 7ms/step - loss: 0.5966 - sparse_categorical_accuracy: 0.7830 
+                                                            - val_loss: 0.5890 - val_sparse_categorical_accuracy: 0.7846
+Epoch 3/3
+411703/411703 [==============================] - 2792s 7ms/step - loss: 0.5588 - sparse_categorical_accuracy: 0.7949 
+                                                            - val_loss: 0.5770 - val_sparse_categorical_accuracy: 0.7888
+
+Evaluating model on test data...
+sparse_categorical_accuracy: 79.09%
+
+Per-class test measures:
+128658/128658 [==============================] - 1055s 8ms/step
+             precision    recall  f1-score   support
+
+          0       0.93      0.99      0.96       858
+          1       0.87      0.67      0.76      2593
+          2       0.89      0.67      0.76       240
+          3       0.69      0.63      0.66      9270
+          4       0.70      0.42      0.53      4641
+          5       0.67      0.66      0.66      9938
+          6       0.81      0.51      0.63      5453
+          7       0.59      0.56      0.57      9380
+          8       0.83      0.89      0.86     86285
+
+avg / total       0.79      0.79      0.79    128658
 ```
