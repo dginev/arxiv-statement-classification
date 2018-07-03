@@ -60,7 +60,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     #               if strict classes are on, the zero rule accuracy would be 0.29
     max_per_class = 50_000  # Leads to 659_216 total expressions
     if full_data:
-        max_per_class = 500_000
+        max_per_class = 5_000_000
 
     # Also drops empty rows, and rows with NaN, just in case
     print("reducing data to ", max_per_class, " per class...")
