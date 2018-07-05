@@ -62,7 +62,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     if full_data:
         # A "Zero Rule" classifier with this restriction and f1-env will have accuracy of 0.62
         #   total paragraphs would be 14,740,530, with Other numbered at 9,137,806
-        max_per_class = 5_000_000
+        max_per_class = 1_000_000
 
     # Also drops empty rows, and rows with NaN, just in case
     print("reducing data to ", max_per_class, " per class...")
@@ -250,7 +250,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
         num_words = max([max(x) for x in xs])
 
     print("- oov char")
-    # by convention, use -1 as OOV word
+    # by convention, use 2 as OOV word
     # reserve 'index_from' (=2 by default, as the para index starts at 1) characters:
     # 0 (padding), 1 (start), 2 (OOV)
     # 3 is the most common word ('the')

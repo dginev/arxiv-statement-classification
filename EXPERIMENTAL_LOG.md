@@ -566,3 +566,56 @@ Per-class test measures:
 
 avg / total       0.79      0.79      0.79    128658
 ```
+
+# Full Dataset Training 
+
+## EXPERIMENT I: 2x150 BiLSTM
+(cap Other class at 5 million entries, for performance)
+Total Input; Label summary:  {0: 4216, 1: 13741, 2: 1369, 3: 4213367, 4: 23074, 5: 675025, 6: 27482, 7: 644450, 8: 9137806}
+
+```
+performing train/test cutoff at index  11224802 / 14031003 ...
+11224802 train sequences
+2806201 test sequences
+
+Training model...
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_1 (Embedding)      (None, 150, 300)          224002800 
+_________________________________________________________________
+bidirectional_1 (Bidirection (None, 150, 300)          541200    
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 150, 300)          0         
+_________________________________________________________________
+bidirectional_2 (Bidirection (None, 300)               541200    
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 300)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 9)                 2709      
+=================================================================
+Total params: 225,087,909
+Trainable params: 1,085,109
+Non-trainable params: 224,002,800
+
+Train on 8979841 samples, validate on 2244961 samples
+8979840/8979841 [============================>.] - ETA: 0s - loss: 0.4671 - sparse_categorical_accuracy: 0.8265
+                                                       - val_loss: 0.4425 - val_sparse_categorical_accuracy: 0.8347
+
+Epoch 2/10
+8979841/8979841 [==============================] - 60209s 7ms/step - loss: 0.4420 - sparse_categorical_accuracy: 0.8352 
+                                                               - val_loss: 0.4356 - val_sparse_categorical_accuracy: 0.8370
+Epoch 3/10
+4694272/8979841 [==============>...............] - ETA: 7:21:46 - loss: 0.4362 - sparse_categorical_accuracy: 0.8373 
+
+[interrupted due to early saturation and slow runtime]
+```
+
+## EXPERIMENT II: 2x300 BiLSTM, 300 maxlen
+(cap classes at 1 million)
+
+## EXPERIMENT III: 150:300:150 BiLSTM
+
+```
+
+```

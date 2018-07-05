@@ -26,12 +26,17 @@ from sklearn.metrics import classification_report
 import arxiv
 
 # Use full CPU capacity
+gpu_options = tf.GPUOptions(
+    per_process_gpu_memory_fraction=0.333, allow_growth=True)
 config = tf.ConfigProto(intra_op_parallelism_threads=16,
-                        inter_op_parallelism_threads=16, allow_soft_placement=True)
+                        inter_op_parallelism_threads=16, allow_soft_placement=True, gpu_options=gpu_options)
+
 session = tf.Session(config=config)
 K.set_session(session)
 
-maxlen = 150  # sentences of 25 words each? Also compare "15", 50" vs "250", "500" word window extremes
+# Analyzing the arxiv dataset seems to indicate a maxlen of 300 is needed to fit 99.2% of the data
+#                                               a maxlen of 150 fits 94.03%, and a maxlen of 600 covers 99.91% of paragraphs
+maxlen = 300  # sentences of 25 words each? Also compare "15", 50" vs "250", "500" word window extremes
 # what is the optimum here? the average arXiv document seems to have 110 paragraphs ?!
 batch_size = 128  # 32, 64, 128
 strict_labels = 'f1-envs'
@@ -74,6 +79,8 @@ model = Sequential()
 model.add(embedding_layer)
 model.add(Bidirectional(LSTM(maxlen, return_sequences=True)))
 model.add(Dropout(0.2))
+# model.add(Bidirectional(LSTM(2*maxlen, return_sequences=True)))
+# model.add(Dropout(0.2))
 model.add(Bidirectional(LSTM(maxlen)))
 model.add(Dropout(0.2))
 model.add(Dense(n_classes, activation='softmax'))
@@ -98,7 +105,8 @@ print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
 # serialize model to JSON
 print("Saving model to disk...")
-model.save("model-2x150-f1-8-classes-big.h5")
+model.save("model-2x300-f1-9-classes-big.h5")
+# model.save("model-1x2x1x150-f1-9-classes-big.h5")
 
 print("Per-class test measures:")
 y_pred = model.predict_classes(x_test, verbose=1)
