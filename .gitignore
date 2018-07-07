@@ -102,3 +102,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# ignore data and models directories, as the files go beyond github's limits
+data/
+models/
+
