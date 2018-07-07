@@ -62,7 +62,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     if full_data:
         # A "Zero Rule" classifier with this restriction and f1-env will have accuracy of 0.62
         #   total paragraphs would be 14,740,530, with Other numbered at 9,137,806
-        max_per_class = 1_000_000
+        max_per_class = 500_000
 
     # Also drops empty rows, and rows with NaN, just in case
     print("reducing data to ", max_per_class, " per class...")
@@ -304,7 +304,6 @@ def get_word_index(path='data/arxiv_word_index.json'):
 
 
 def load_vocab():
-    index_dict = {}
     with open('data/arxiv_word_index.json') as json_data:
         return json.load(json_data)
 
