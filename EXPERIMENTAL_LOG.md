@@ -1,3 +1,20 @@
+# CNN(mix-depth 3,5,18,33)
+```
+             precision    recall  f1-score   support
+
+          0       0.93      0.99      0.96       862
+          1       0.83      0.71      0.77      2717
+          2       0.80      0.63      0.71       243
+          3       0.67      0.62      0.64      9814
+          4       0.70      0.34      0.46      4661
+          5       0.67      0.56      0.61     10050
+          6       0.83      0.46      0.59      5477
+          7       0.71      0.25      0.37      9724
+          8       0.79      0.92      0.85     88003
+
+avg / total       0.77      0.78      0.76    131551
+```
+
 # CNN(100f,2k)
 ```_________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -866,7 +883,6 @@ Discussion: 3 epochs seem sufficient. Performance only marginably better (1%) th
 
 # TODO: Variants to try out
  * Embedding dropout of 0.5 instead of the biLSTM dropout
- * CNN + MAXPOOL + DENSE + DENSE variant, instead of the biLSTM variant.
  * biLSTM + Attention = https://github.com/keras-team/keras/issues/4962#issuecomment-271934502 
  * 5-level deep biLSTM (what # of units in each? 100? and dropout? 0.2?)
  * biLSTMs seem to converge very fast, maybe 3 epochs max?

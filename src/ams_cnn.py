@@ -19,7 +19,7 @@ import json
 import tensorflow as tf
 from keras.preprocessing import sequence
 from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Embedding, Flatten, Conv1D, GlobalMaxPooling1D
+from keras.layers import Dense, Dropout, Embedding, Flatten, Conv1D, GlobalMaxPooling1D, MaxPooling1D
 from keras import metrics
 from keras import backend as K
 from sklearn.metrics import classification_report
@@ -28,10 +28,8 @@ from keras.layers.merge import concatenate
 import arxiv
 
 # Use full CPU capacity
-gpu_options = tf.GPUOptions(
-    per_process_gpu_memory_fraction=0.333, allow_growth=True)
 config = tf.ConfigProto(intra_op_parallelism_threads=16,
-                        inter_op_parallelism_threads=16, allow_soft_placement=True, gpu_options=gpu_options)
+                        inter_op_parallelism_threads=16, allow_soft_placement=True)
 
 session = tf.Session(config=config)
 K.set_session(session)
@@ -72,26 +70,33 @@ print('x_test shape:', x_test.shape)
 print('y_train shape:', y_train.shape)
 print('y_test shape:', y_test.shape)
 
-glove_dim = 300  # GloVe vector dimensions
-nb_feature_maps = int(maxlen/2)
-
 (embedding_layer, input_1) = arxiv.build_embedding_layer(with_input=True,
                                                          maxlen=maxlen, batch_size=batch_size, mask_zero=False)
 gc.collect()
 
-ngram_filters = [2, 3, 4, 5, 6, 8]
+# 3, 5, 18, 33
+ngram_filters = [3, 6, 12, 24, 48]
 conv_filters = []
+nb_feature_maps = int(maxlen/2)
 
 for n_gram in ngram_filters:
-    tower_i = Conv1D(filters=nb_feature_maps,
+    conv_depth_i = int(n_gram / 10)
+    filter_size_i = int(nb_feature_maps/(conv_depth_i+1))
+    tower_i = Conv1D(filters=filter_size_i,
                      kernel_size=n_gram, activation='relu')(embedding_layer)
+    tower_i = Dropout(0.2)(tower_i)
+    if conv_depth_i > 0:
+        for idx in range(0, conv_depth_i):
+            tower_i = Conv1D(filters=filter_size_i,
+                             kernel_size=n_gram, activation='relu')(tower_i)
+            tower_i = Dropout(0.2)(tower_i)
+
     tower_i = GlobalMaxPooling1D()(tower_i)
     conv_filters.append(tower_i)
 
 print("setting up model layout...")
 output = concatenate(conv_filters)
-output = Dropout(0.5)(output)
-output = Dense(nb_feature_maps * len(ngram_filters), activation="relu")(output)
+output = Dense(nb_feature_maps, activation="relu")(output)
 output = Dropout(0.2)(output)
 output = Dense(n_classes, activation='softmax')(output)
 # summarize the model
@@ -105,7 +110,7 @@ print(model.summary())
 
 model.fit(x_train, y_train,
           batch_size=batch_size,
-          epochs=5,
+          epochs=15,
           validation_split=0.2)
 
 
@@ -120,4 +125,6 @@ model.save("model-cnn-6gram-f1-9-classes.h5")
 
 # print("Per-class test measures:")
 # y_pred = model.predict_classes(x_test, verbose=1)
-# print(classification_report(y_test, y_pred))
+y_prob = model.predict(x_test)
+y_pred = y_prob.argmax(axis=-1)
+print(classification_report(y_test, y_pred))
