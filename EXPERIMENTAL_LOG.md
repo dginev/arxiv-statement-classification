@@ -1,3 +1,67 @@
+# Dense(300) baseline
+```
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+dense_1 (Dense)              (None, 300)               90300     
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 300)               0         
+_________________________________________________________________
+dense_2 (Dense)              (None, 9)                 2709      
+=================================================================
+Total params: 93,009
+Trainable params: 93,009
+Non-trainable params: 0
+_________________________________________________________________
+None
+Evaluating model on test data...
+sparse_categorical_accuracy: 66.82%
+Saving model to disk...
+Per-class test measures:
+131551/131551 [==============================] - 2s 15us/step
+/home/deyan/anaconda3/lib/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+             precision    recall  f1-score   support
+
+          0       0.00      0.00      0.00       862
+          1       0.00      0.00      0.00      2717
+          2       0.00      0.00      0.00       243
+          3       0.11      0.00      0.00      9814
+          4       0.00      0.00      0.00      4661
+          5       0.24      0.00      0.00     10050
+          6       0.00      0.00      0.00      5477
+          7       0.12      0.00      0.00      9724
+          8       0.67      1.00      0.80     88003
+
+avg / total       0.48      0.67      0.54    131551
+```
+
+Deep Dense(600,300,150) baseline showed an identical result.
+
+Learns the zero rule for Other, but that's about all.
+
+# Dense(300) baseline + arXiv Glove embeddings
+```
+Evaluating model on test data...
+sparse_categorical_accuracy: 71.18%
+Saving model to disk...
+Per-class test measures:
+131551/131551 [==============================] - 7s 51us/step
+             precision    recall  f1-score   support
+
+          0       0.91      0.87      0.89       862
+          1       0.75      0.53      0.62      2717
+          2       0.87      0.37      0.52       243
+          3       0.60      0.39      0.47      9814
+          4       0.51      0.23      0.32      4661
+          5       0.53      0.28      0.37     10050
+          6       0.55      0.20      0.30      5477
+          7       0.51      0.22      0.31      9724
+          8       0.74      0.91      0.82     88003
+
+avg / total       0.68      0.71      0.68    131551
+```
+
 # CNN(mix-depth 3,5,18,33)
 ```
              precision    recall  f1-score   support

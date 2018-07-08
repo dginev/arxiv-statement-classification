@@ -56,9 +56,11 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     # TODO: BAD!!! If we are sampling a small amount from the data, it needs to preserve the distribution.
     #       At least grab a max per category.
 
-    # A "Zero Rule" classifier with this restriction will have accuracy of 0.076
-    #               if strict classes are on, the zero rule accuracy would be 0.29
     max_per_class = 50_000  # Leads to 659_216 total expressions
+    # A "Zero Rule" classifier with this 50,000 restriction will have accuracy of 0.076
+    #               if strict classes are on, the zero rule accuracy would be 0.29
+    #               with the f1-based 9 classes, zero rule wouild be a very high 0.667
+
     if full_data:
         # A "Zero Rule" classifier with this restriction and f1-env will have accuracy of 0.62
         #   total paragraphs would be 14,740,530, with Other numbered at 9,137,806
