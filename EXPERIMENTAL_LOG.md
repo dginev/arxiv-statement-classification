@@ -611,11 +611,141 @@ Epoch 3/10
 [interrupted due to early saturation and slow runtime]
 ```
 
-## EXPERIMENT II: 2x300 BiLSTM, 300 maxlen
-(cap classes at 1 million)
+## EXPERIMENT II: 150 BiLSTM, 300 maxlen
+(cap classes at 500,000)
 
-## EXPERIMENT III: 150:300:150 BiLSTM
+```
+Label summary:  {0: 4216, 1: 13741, 2: 1369, 3: 500000, 4: 23074, 5: 500000, 6: 27482, 7: 500000, 8: 2870700}
+
+performing train/test cutoff at index  3543062 / 4428828 ...
+3543062 train sequences
+885766 test sequences
+
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_1 (Embedding)      (None, 300, 300)          224002800 
+_________________________________________________________________
+bidirectional_1 (Bidirection (None, 300)               541200    
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 300)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 9)                 2709      
+=================================================================
+Total params: 224,546,709
+Trainable params: 543,909
+Non-trainable params: 224,002,800
+_________________________________________________________________
+None
+Train on 2834449 samples, validate on 708613 samples
+Epoch 1/10
+2834449/2834449 [==============================] - 19895s 7ms/step - loss: 0.5282 - sparse_categorical_accuracy: 0.8106 
+                                                               - val_loss: 0.4942 - val_sparse_categorical_accuracy: 0.8222
+Epoch 2/10
+2834449/2834449 [==============================] - 19860s 7ms/step - loss: 0.4810 - sparse_categorical_accuracy: 0.8279
+                                                               - val_loss: 0.4822 - val_sparse_categorical_accuracy: 0.8270
+Epoch 3/10
+2834449/2834449 [==============================] - 19748s 7ms/step - loss: 0.4668 - sparse_categorical_accuracy: 0.8326 
+                                                               - val_loss: 0.4752 - val_sparse_categorical_accuracy: 0.8290
+
+Epoch 4/10
+2834449/2834449 [==============================] - 19437s 7ms/step - loss: 0.4572 - sparse_categorical_accuracy: 0.8359 
+                                                               - val_loss: 0.4749 - val_sparse_categorical_accuracy: 0.8295
+
+Epoch 5/10
+2834449/2834449 [==============================] - 19732s 7ms/step - loss: 0.4501 - sparse_categorical_accuracy: 0.8384
+                                                               - val_loss: 0.4769 - val_sparse_categorical_accuracy: 0.8296
+
+Epoch 6/10
+2834449/2834449 [==============================] - 19972s 7ms/step - loss: 0.4444 - sparse_categorical_accuracy: 0.8405 
+                                                               - val_loss: 0.4763 - val_sparse_categorical_accuracy: 0.8291
+
+Epoch 7/10
+2834449/2834449 [==============================] - 19571s 7ms/step - loss: 0.4396 - sparse_categorical_accuracy: 0.8423 
+                                                               - val_loss: 0.4753 - val_sparse_categorical_accuracy: 0.8303
+
+Epoch 8/10
+2834449/2834449 [==============================] - 19543s 7ms/step - loss: 0.4357 - sparse_categorical_accuracy: 0.8437
+                                                               - val_loss: 0.4773 - val_sparse_categorical_accuracy: 0.8288
+
+Epoch 9/10
+2834449/2834449 [==============================] - 19496s 7ms/step - loss: 0.4327 - sparse_categorical_accuracy: 0.8446
+                                                               - val_loss: 0.4766 - val_sparse_categorical_accuracy: 0.8298
+
+Epoch 10/10
+2834449/2834449 [==============================] - 20089s 7ms/step - loss: 0.4301 - sparse_categorical_accuracy: 0.8455
+                                                               - val_loss: 0.4781 - val_sparse_categorical_accuracy: 0.8289
+
+Evaluating model on test data...
+sparse_categorical_accuracy: 82.96%
+
+Per-class test measures:
+885766/885766 [==============================] - 7399s 8ms/step
+                 precision    recall  f1-score   support
+
+ acknowledgement 0       0.66      0.70      0.68       861
+ algorithm       1       0.75      0.52      0.61      2649
+ caption         2       0.77      0.51      0.61       267
+ proof           3       0.75      0.74      0.74     99251
+ assumption      4       0.66      0.18      0.28      4640
+ definition      5       0.82      0.79      0.81    100324
+ problem         6       0.67      0.46      0.55      5570
+ remark          7       0.69      0.59      0.64     99476
+ other           8       0.86      0.90      0.88    572728
+
+ avg / total       0.83      0.83      0.83    885766
 
 ```
 
+Discussion: 3 epochs seem sufficient.
+
+## EXPERIMENT III: 2x150BiLSTM, 300 maxlen
+(cap classes at 500,000)
+
 ```
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_1 (Embedding)      (None, 300, 300)          224002800 
+_________________________________________________________________
+bidirectional_1 (Bidirection (None, 300, 300)          541200    
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 300, 300)          0         
+_________________________________________________________________
+bidirectional_2 (Bidirection (None, 300)               541200    
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 300)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 9)                 2709      
+=================================================================
+Total params: 225,087,909
+Trainable params: 1,085,109
+Non-trainable params: 224,002,800
+_________________________________________________________________
+None
+Train on 2834449 samples, validate on 708613 samples
+Epoch 1/10
+2834449/2834449 [==============================] - 39888s 14ms/step - loss: 0.5172 - sparse_categorical_accuracy: 0.8143
+                                                                - val_loss: 0.4749 - val_sparse_categorical_accuracy: 0.8296
+Epoch 2/10
+2834449/2834449 [==============================] - 39322s 14ms/step - loss: 0.4664 - sparse_categorical_accuracy: 0.8328
+                                                                - val_loss: 0.4622 - val_sparse_categorical_accuracy: 0.8338
+Epoch 3/10
+2834449/2834449 [==============================] - 39773s 14ms/step - loss: 0.4514 - sparse_categorical_accuracy: 0.8381
+                                                                - val_loss: 0.4585 - val_sparse_categorical_accuracy: 0.8351
+Epoch 4/10
+2834449/2834449 [==============================] - 39171s 14ms/step - loss: 0.4421 - sparse_categorical_accuracy: 0.8415
+                                                                - val_loss: 0.4562 - val_sparse_categorical_accuracy: 0.8364
+Epoch 5/10
+2834449/2834449 [==============================] - 39614s 14ms/step - loss: 0.4356 - sparse_categorical_accuracy: 0.8440 
+                                                                - val_loss: 0.4559 - val_sparse_categorical_accuracy: 0.8370
+```
+
+Discussion: 3 epochs seem sufficient. Performance only marginably better (1%) than single layer biLSTM
+
+# TODO: Variants to try out
+ * Embedding dropout of 0.5 instead of the biLSTM dropout
+ * CNN + MAXPOOL + DENSE + DENSE variant, instead of the biLSTM variant.
+ * biLSTM + Attention = https://github.com/keras-team/keras/issues/4962#issuecomment-271934502 
+ * 5-level deep biLSTM (what # of units in each? 100? and dropout? 0.2?)
+ * biLSTMs seem to converge very fast, maybe 3 epochs max?
