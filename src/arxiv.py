@@ -11,7 +11,7 @@ import numpy as np
 import json
 import warnings
 import gc
-from keras.layers import Embedding
+from keras.layers import Embedding, Input
 
 
 def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
@@ -318,7 +318,7 @@ def load_glove():
     return glove
 
 
-def build_embedding_layer(maxlen=256, index_from=2, vocab_dim=300, batch_size=50):
+def build_embedding_layer(with_input=False, maxlen=256, index_from=2, vocab_dim=300, batch_size=50, mask_zero=True):
     print("loading word embeddings...")
     index_dict = load_vocab()
     word_vectors = load_glove()
@@ -329,11 +329,18 @@ def build_embedding_layer(maxlen=256, index_from=2, vocab_dim=300, batch_size=50
     for word, index in index_dict.items():
         embedding_weights[index+index_from, :] = word_vectors[word]
 
-    # define inputs here
-    embedding_layer = Embedding(
-        mask_zero=True,
-        output_dim=vocab_dim, input_dim=n_symbols, input_length=maxlen, trainable=False)
-    # if you don't do this, the next step won't work
-    embedding_layer.build((None,))
-    embedding_layer.set_weights([embedding_weights])
-    return embedding_layer
+    if not with_input:
+        # define inputs here
+        embedding_layer = Embedding(
+            mask_zero=mask_zero,
+            output_dim=vocab_dim, input_dim=n_symbols, input_length=maxlen, trainable=False, weights=[embedding_weights])
+        # if you don't do this, the next step won't work
+        return embedding_layer
+    else:
+        # define inputs here
+        input_1 = Input(shape=(maxlen,), dtype='int32')
+        embedding_layer = Embedding(
+            weights=[embedding_weights],
+            mask_zero=mask_zero,
+            output_dim=vocab_dim, input_dim=n_symbols, input_length=maxlen, trainable=False)(input_1)
+        return (embedding_layer, input_1)
