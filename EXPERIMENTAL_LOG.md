@@ -19,7 +19,6 @@ sparse_categorical_accuracy: 66.82%
 Saving model to disk...
 Per-class test measures:
 131551/131551 [==============================] - 2s 15us/step
-/home/deyan/anaconda3/lib/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
   'precision', 'predicted', average, warn_for)
              precision    recall  f1-score   support
 
@@ -186,15 +185,20 @@ ________________________________________________________________________________
 None
 Train on 420962 samples, validate on 105241 samples
 Epoch 1/5
-420962/420962 [==============================] - 171s 407us/step - loss: 0.7709 - sparse_categorical_accuracy: 0.7312 - val_loss: 0.6712 - val_sparse_categorical_accuracy: 0.7622
+420962/420962 [==============================] - 171s 407us/step - loss: 0.7709 - sparse_categorical_accuracy: 0.7312 
+                                                             - val_loss: 0.6712 - val_sparse_categorical_accuracy: 0.7622
 Epoch 2/5
-420962/420962 [==============================] - 169s 400us/step - loss: 0.6869 - sparse_categorical_accuracy: 0.7533 - val_loss: 0.6430 - val_sparse_categorical_accuracy: 0.7660
+420962/420962 [==============================] - 169s 400us/step - loss: 0.6869 - sparse_categorical_accuracy: 0.7533 
+                                                             - val_loss: 0.6430 - val_sparse_categorical_accuracy: 0.7660
 Epoch 3/5
-420962/420962 [==============================] - 169s 400us/step - loss: 0.6659 - sparse_categorical_accuracy: 0.7596 - val_loss: 0.6294 - val_sparse_categorical_accuracy: 0.7742
+420962/420962 [==============================] - 169s 400us/step - loss: 0.6659 - sparse_categorical_accuracy: 0.7596 
+                                                             - val_loss: 0.6294 - val_sparse_categorical_accuracy: 0.7742
 Epoch 4/5
-420962/420962 [==============================] - 170s 403us/step - loss: 0.6504 - sparse_categorical_accuracy: 0.7631 - val_loss: 0.6325 - val_sparse_categorical_accuracy: 0.7678
+420962/420962 [==============================] - 170s 403us/step - loss: 0.6504 - sparse_categorical_accuracy: 0.7631 
+                                                             - val_loss: 0.6325 - val_sparse_categorical_accuracy: 0.7678
 Epoch 5/5
-420962/420962 [==============================] - 166s 395us/step - loss: 0.6404 - sparse_categorical_accuracy: 0.7671 - val_loss: 0.6223 - val_sparse_categorical_accuracy: 0.7778
+420962/420962 [==============================] - 166s 395us/step - loss: 0.6404 - sparse_categorical_accuracy: 0.7671 
+                                                             - val_loss: 0.6223 - val_sparse_categorical_accuracy: 0.7778
 Evaluating model on test data...
 sparse_categorical_accuracy: 77.83%
 ```
@@ -222,7 +226,8 @@ First ever reasonable try
  411703/411703 [==============================] - 2690s 7ms/step - loss: 2.3600 - sparse_categorical_accuracy: 0.2427
                                                              - val_loss: 2.1382 - val_sparse_categorical_accuracy: 0.3077
  Epoch 2/2
- 411703/411703 [==============================] - 2702s 7ms/step - loss: 2.0567 - sparse_categorical_accuracy: 0.3320 - val_loss: 1.9705 - val_sparse_categorical_accuracy: 0.3538
+ 411703/411703 [==============================] - 2702s 7ms/step - loss: 2.0567 - sparse_categorical_accuracy: 0.3320 
+                                                             - val_loss: 1.9705 - val_sparse_categorical_accuracy: 0.3538
  Evaluating model on test data...
  sparse_categorical_accuracy: 35.39%
  
@@ -880,6 +885,7 @@ Epoch 10/10
 
 Evaluating model on test data...
 sparse_categorical_accuracy: 82.96%
+Saving model to disk... (model-150-f1-9-classes-big.h5)
 
 Per-class test measures:
 885766/885766 [==============================] - 7399s 8ms/step
@@ -941,6 +947,42 @@ Epoch 4/10
 Epoch 5/10
 2834449/2834449 [==============================] - 39614s 14ms/step - loss: 0.4356 - sparse_categorical_accuracy: 0.8440 
                                                                 - val_loss: 0.4559 - val_sparse_categorical_accuracy: 0.8370
+Epoch 6/10
+2834449/2834449 [==============================] - 39141s 14ms/step - loss: 0.4310 - sparse_categorical_accuracy: 0.8455
+                                                                - val_loss: 0.4569 - val_sparse_categorical_accuracy: 0.8364
+Epoch 7/10
+2834449/2834449 [==============================] - 38586s 14ms/step - loss: 0.4276 - sparse_categorical_accuracy: 0.8467 
+                                                                - val_loss: 0.4591 - val_sparse_categorical_accuracy: 0.8358
+Epoch 8/10                                                                
+2834449/2834449 [==============================] - 38865s 14ms/step - loss: 0.4250 - sparse_categorical_accuracy: 0.8477
+                                                                - val_loss: 0.4592 - val_sparse_categorical_accuracy: 0.8358
+
+Epoch 9/10
+2834449/2834449 [==============================] - 38611s 14ms/step - loss: 0.4233 - sparse_categorical_accuracy: 0.8480 
+                                                                - val_loss: 0.4583 - val_sparse_categorical_accuracy: 0.8361
+
+Epoch 10/10
+2834449/2834449 [==============================] - 38882s 14ms/step - loss: 0.4220 - sparse_categorical_accuracy: 0.8487 
+                                                                - val_loss: 0.4603 - val_sparse_categorical_accuracy: 0.8364
+Evaluating model on test data...
+sparse_categorical_accuracy: 83.69%
+Saving model to disk... (model-2x150-f1-9-classes-big.h5)
+Per-class test measures:
+885766/885766 [==============================] - 14211s 16ms/step
+                precision    recall  f1-score   support
+
+acknowledgement 0       0.66      0.83      0.73       861
+algorithm       1       0.70      0.60      0.64      2649
+caption         2       0.79      0.51      0.62       267
+proof           3       0.75      0.76      0.75     99251
+assumption      4       0.58      0.27      0.37      4640
+definition      5       0.84      0.79      0.82    100324
+problem         6       0.72      0.46      0.56      5570
+remark          7       0.70      0.63      0.66     99476
+other           8       0.87      0.90      0.89    572728
+
+avg / total             0.83      0.84      0.83    885766
+
 ```
 
 Discussion: 3 epochs seem sufficient. Performance only marginably better (1%) than single layer biLSTM
