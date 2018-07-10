@@ -987,8 +987,44 @@ avg / total             0.83      0.84      0.83    885766
 
 Discussion: 3 epochs seem sufficient. Performance only marginably better (1%) than single layer biLSTM
 
+## EXPERIMENT IV: 64 BiLSTM, 128 maxlen, binary definition classifier
+```
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_1 (Embedding)      (None, 128, 300)          224002800 
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 128, 300)          0         
+_________________________________________________________________
+bidirectional_1 (Bidirection (None, 128)               186880    
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 128)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 2)                 258       
+=================================================================
+Total params: 224,189,938
+Trainable params: 187,138
+Non-trainable params: 224,002,800
+_________________________________________________________________
+None
+Train on 405687 samples, validate on 101422 samples
+Epoch 1/2
+405687/405687 [==============================] - 1161s 3ms/step - loss: 0.1780 - sparse_categorical_accuracy: 0.9338 - val_loss: 0.1501 - val_sparse_categorical_accuracy: 0.9423
+Epoch 2/2
+405687/405687 [==============================] - 1159s 3ms/step - loss: 0.1498 - sparse_categorical_accuracy: 0.9415 - val_loss: 0.1436 - val_sparse_categorical_accuracy: 0.9441
+Evaluating model on test data...
+sparse_categorical_accuracy: 94.60%
+Saving model to disk...
+Per-class test measures:
+126778/126778 [==============================] - 448s 4ms/step
+             precision    recall  f1-score   support
+
+          0       0.67      0.61      0.64      9852
+          1       0.97      0.97      0.97    116926
+
+avg / total       0.94      0.95      0.94    126778
+```
+
 # TODO: Variants to try out
- * Embedding dropout of 0.5 instead of the biLSTM dropout
- * biLSTM + Attention = https://github.com/keras-team/keras/issues/4962#issuecomment-271934502 
- * 5-level deep biLSTM (what # of units in each? 100? and dropout? 0.2?)
- * biLSTMs seem to converge very fast, maybe 3 epochs max?
+  * biLSTM + Attention = https://github.com/keras-team/keras/issues/4962#issuecomment-271934502 
+ 

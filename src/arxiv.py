@@ -16,7 +16,7 @@ from keras.layers import Embedding, Input
 
 def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
               maxlen=None, test_split=0.2, seed=521,
-              start_char=1, oov_char=2, index_from=2, strict_labels=False, full_data=False, **kwargs):
+              start_char=1, oov_char=2, index_from=2, setup_labels=False, full_data=False, **kwargs):
     """Loads the Reuters newswire classification dataset.
 
     # Arguments
@@ -85,7 +85,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     labels = np.array(labels_reduced)
     gc.collect()
 
-    if strict_labels:
+    if setup_labels:
         # strict_dict = {
         #     "definition": 1,
         #     "example": 2,
@@ -98,62 +98,37 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
         #     "theorem": 9,
         #     "other": 10
         # }
-        strict_map = {
-            0: 10,
-            1: 1,
-            2: 6,
-            3: 10,
-            4: 6,
-            5: 6,
-            6: 6,
-            7: 6,
-            8: 1,
-            9: 2,
-            10: 6,
-            11: 9,
-            12: 3,
-            13: 10,
-            14: 10,
-            15: 4,
-            16: 5,
-            17: 6,
-            18: 7,
-            19: 8,
-            20: 8,
-            21: 8,
-            22: 9
-        }
-        stricter_map = {
-            0: 10,
-            1: 1,
-            2: 6,
-            3: 10,
-            4: 6,
-            5: 6,
-            6: 6,
-            7: 6,
-            8: 1,
-            9: 2,
-            10: 6,
-            11: 10,
-            12: 10,
-            13: 10,
-            14: 10,
-            15: 4,
-            16: 5,
-            17: 6,
-            18: 10,
-            19: 8,
-            20: 8,
-            21: 8,
-            22: 10
-        }
         other_label = 13
-        if strict_labels == "strict-envs-only":
+        if setup_labels == "stricter-envs":
             print("Reducing to 9 label classes")
+            stricter_map = {
+                0: 10,
+                1: 1,
+                2: 6,
+                3: 10,
+                4: 6,
+                5: 6,
+                6: 6,
+                7: 6,
+                8: 1,
+                9: 2,
+                10: 6,
+                11: 10,
+                12: 10,
+                13: 10,
+                14: 10,
+                15: 4,
+                16: 5,
+                17: 6,
+                18: 10,
+                19: 8,
+                20: 8,
+                21: 8,
+                22: 10
+            }
             other_label = 10
             labels = np.array([int(stricter_map[l]) for l in labels])
-        elif strict_labels == "f1-envs":
+        elif setup_labels == "f1-envs":
             # (as evaluated on a 2 layer biLSTM(150)+biLSTM(150))
             # Based on experimental f1-score on the full 23 classes where:
             #
@@ -188,12 +163,41 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
                     labels_env.append(other_label)
             xs = np.array(xs_env)
             labels = np.array(labels_env)
-        elif strict_labels != "envs-only":
+        elif setup_labels == "strict-envs":
+            strict_envs = {
+                0: 10,
+                1: 1,
+                2: 6,
+                3: 10,
+                4: 6,
+                5: 6,
+                6: 6,
+                7: 6,
+                8: 1,
+                9: 2,
+                10: 6,
+                11: 9,
+                12: 3,
+                13: 10,
+                14: 10,
+                15: 4,
+                16: 5,
+                17: 6,
+                18: 7,
+                19: 8,
+                20: 8,
+                21: 8,
+                22: 9
+            }
             print("Reducing to 10 label classes")
             other_label = 10
-            labels = np.array([int(strict_map[l]) for l in labels])
-
-        if strict_labels == "envs-only" or strict_labels == "strict-envs-only":
+            labels = np.array([int(strict_envs[l]) for l in labels])
+        elif setup_labels == "definition-binary":
+            print("Reducing to 2 label classes")
+            other_label = 1
+            labels = np.array([0 if l == 8 else 1 for l in labels])
+        # dropping requested categories ("no-*")
+        if setup_labels == "no-other" or setup_labels == "stricter-envs":
             print("ignoring Other category from dataset")
             xs_env = []
             labels_env = []
@@ -216,6 +220,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     xs = xs[indices]
     labels = labels[indices]
     gc.collect()
+
     # Might as well report a summary of what is in the labels...
     label_summary = dict.fromkeys(range(0, 23), 0)
     for label in labels:
