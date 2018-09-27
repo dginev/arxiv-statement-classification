@@ -1025,6 +1025,34 @@ Per-class test measures:
 avg / total       0.94      0.95      0.94    126778
 ```
 
+### dropping potentially conflicting labels
+(dropped algorithm, assumption, condition, notation)
+
+```
+Train on 362688 samples, validate on 90672 samples
+Epoch 1/2
+362688/362688 [==============================] - 2073s 6ms/step - loss: 0.1601 - sparse_categorical_accuracy: 0.9440 - val_loss: 0.1196 - val_sparse_categorical_accuracy: 0.9583
+Epoch 2/2
+362688/362688 [==============================] - 2076s 6ms/step - loss: 0.1251 - sparse_categorical_accuracy: 0.9565 - val_loss: 0.1130 - val_sparse_categorical_accuracy: 0.9610
+Evaluating model on test data...
+sparse_categorical_accuracy: 96.06%
+Saving model to disk...
+Per-class test measures:
+113340/113340 [==============================] - 785s 7ms/step
+             precision    recall  f1-score   support
+
+          0       0.84      0.68      0.75      9946
+          1       0.97      0.99      0.98    103394
+
+avg / total       0.96      0.96      0.96    113340
+```
+
+ dropping theorem and lemma - no
+ dropping proposition and problem - no
+ dropping caption, case, conjecture - no
+ dropping notation, other, paragraph, problem - 
+
+
 # TODO: Variants to try out
   * biLSTM + Attention = https://github.com/keras-team/keras/issues/4962#issuecomment-271934502 
  
