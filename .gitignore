@@ -106,4 +106,4 @@ venv.bak/
 # ignore data and models directories, as the files go beyond github's limits
 data/
 models/
-
+*.h5

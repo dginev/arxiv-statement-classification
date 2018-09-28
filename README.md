@@ -22,4 +22,6 @@ Some files exceed GitHub's file size limit and need to be setup by hand (TODO: a
 	
 	python3 src/demo_npz.py 
 	python3 src/ams_dense_baseline.py
+
+	CUDA_VISIBLE_DEVICES=0 python3 src/ams_bidirectional_lstm.py 
 ```
