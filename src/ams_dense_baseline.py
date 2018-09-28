@@ -39,21 +39,27 @@ K.set_session(session)
 maxlen = 300  # sentences of 25 words each? Also compare "15", 50" vs "250", "500" word window extremes
 # what is the optimum here? the average arXiv document seems to have 110 paragraphs ?!
 batch_size = 128  # 32, 64, 128
-strict_labels = 'f1-envs'
+
+# Results on arxiv 08.2018 demo_ams.npz
+#                      precision    recall  f1-score   support
+# 23 classes: avg / total   0.33      0.32      0.30     91727
+# 9 classes:                0.67      0.70      0.66     91727
+
+setup_labels = 'f1-envs'  # False
+classes_for_label = {
+    "no-other": 22,
+    "strict-envs": 11,
+    "stricter-envs": 10,
+    "f1-envs": 9,
+    "definition-binary": 2
+}
 n_classes = 23  # ams classes/labels (0-22)
-if strict_labels:  # down to (0-10) if strict
-    if strict_labels == "envs-only":
-        n_classes = 22
-    elif strict_labels == "strict-envs-only":
-        n_classes = 10
-    elif strict_labels == "f1-envs":
-        n_classes = 9
-    else:
-        n_classes = 11
+if setup_labels and setup_labels in classes_for_label:
+    n_classes = classes_for_label[setup_labels]
 
 print('Loading data...')
 (x_train, y_train), (x_test, y_test) = arxiv.load_data(
-    maxlen=maxlen, strict_labels=strict_labels, full_data=False)
+    maxlen=maxlen, setup_labels=setup_labels, full_data=False)
 print(len(x_train), 'train sequences')
 print(len(x_test), 'test sequences')
 gc.collect()
@@ -74,17 +80,16 @@ embedding_layer = arxiv.build_embedding_layer(
     maxlen=maxlen, batch_size=batch_size, mask_zero=False)
 gc.collect()
 
-
 print("setting up model layout...")
 model = Sequential()
 model.add(embedding_layer)
+model.add(Dropout(0.5))
 model.add(Flatten())
 model.add(Dense(maxlen, activation='relu'))
-model.add(Dropout(0.2))
 model.add(Dense(n_classes, activation='softmax'))
 # try using different optimizers and different optimizer configs?
 model.compile(loss='sparse_categorical_crossentropy',
-              optimizer="adam",  # sgd ?
+              optimizer="adam",
               metrics=[metrics.sparse_categorical_accuracy])
 # summarize the model
 print('Training model...')
