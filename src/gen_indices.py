@@ -10,8 +10,8 @@ import json
 import sys
 
 
-vocab_file = "/data/datasets/embeddings-arXMLiv-08-2018/vocab.arxmliv.txt"
-word_index_destination = "./data/arxiv_word_index.json"
+vocab_file = "data/vocab.txt"
+word_index_destination = "./data/ams_word_index.json"
 label_index_destination = "./data/ams_label_index.json"
 
 argcount = len(sys.argv[1:])

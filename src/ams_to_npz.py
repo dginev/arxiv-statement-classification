@@ -28,7 +28,7 @@ def saveCompressed(fh, **namedict):
 
 
 # Defaults
-vocab_file = "/data/datasets/embeddings-arXMLiv-08-2018/vocab.arxmliv.txt"
+vocab_file = "/data/vocab.txt"
 ams_para_model = "/var/local/ams_paragraphs_arxmliv_08_2018.tar"
 destination = "/var/local/full_ams_08_2018.npz"
 

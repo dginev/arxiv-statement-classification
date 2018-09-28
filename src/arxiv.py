@@ -49,7 +49,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     #                 file_hash='87aedbeb0cb229e378797a632c1997b6')
 
     if full_data:
-        path = "data/arxiv_ams.npz"
+        path = "data/full_ams.npz"
     with np.load(path) as f:
         xs, labels = f['x'], f['y']
 
@@ -194,10 +194,36 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
             labels = np.array([int(strict_envs[l]) for l in labels])
         elif setup_labels == "definition-binary":
             print("Reducing to 2 label classes")
-            other_label = 1
-            labels = np.array([0 if l == 8 else 1 for l in labels])
+            # 0 = definition, 1 = other, 2 = drop from set
+            definition_envs = {
+                0: 1,
+                1: 2,
+                2: 2,
+                3: 2,
+                4: 2,
+                5: 2,
+                6: 2,
+                7: 1,
+                8: 0,
+                9: 1,
+                10: 1,
+                11: 1,
+                12: 2,
+                13: 2,
+                14: 2,
+                15: 2,
+                16: 1,
+                17: 1,
+                18: 1,
+                19: 1,
+                20: 1,
+                21: 1,
+                22: 1
+            }
+            other_label = 2
+            labels = np.array([definition_envs[l] for l in labels])
         # dropping requested categories ("no-*")
-        if setup_labels == "no-other" or setup_labels == "stricter-envs":
+        if setup_labels == "no-other" or setup_labels == "stricter-envs" or setup_labels == "definition-binary":
             print("ignoring Other category from dataset")
             xs_env = []
             labels_env = []
@@ -292,7 +318,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     return (x_train, y_train), (x_test, y_test)
 
 
-def get_word_index(path='data/arxiv_word_index.json'):
+def get_word_index(path='data/ams_word_index.json'):
     """Retrieves the dictionary mapping word indices back to words.
 
     # Arguments
@@ -311,13 +337,13 @@ def get_word_index(path='data/arxiv_word_index.json'):
 
 
 def load_vocab():
-    with open('data/arxiv_word_index.json') as json_data:
+    with open('data/ams_word_index.json') as json_data:
         return json.load(json_data)
 
 
 def load_glove():
     glove = {}
-    with open('data/glove.arxmliv.5B.300d.txt') as glove_data:
+    with open('data/glove.model.txt') as glove_data:
         for line in glove_data:
             items = line.split()
             key = items[0]
@@ -325,13 +351,14 @@ def load_glove():
     return glove
 
 
-def build_embedding_layer(with_input=False, maxlen=256, index_from=2, vocab_dim=300, batch_size=50, mask_zero=True):
+def build_embedding_layer(with_input=False, maxlen=256, index_from=2, vocab_dim=300, mask_zero=True):
     print("loading word embeddings...")
     index_dict = load_vocab()
     word_vectors = load_glove()
     # adding 2 to account for 0th index (for masking), as well as 1st for start and 2nd for oov
-    # most frequent word ('the') hence has index 3 in the loaded data, so we start loading the embeddings from index 3 as well
+    # most frequent word ('the'/'NUM') hence has index 3 in the loaded data, so we start loading the embeddings from index 3 as well
     n_symbols = len(index_dict) + index_from + 1
+    print("known dictionary items: ", n_symbols)
     embedding_weights = np.zeros((n_symbols, vocab_dim))
     for word, index in index_dict.items():
         embedding_weights[index+index_from, :] = word_vectors[word]

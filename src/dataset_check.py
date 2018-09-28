@@ -16,7 +16,7 @@ root_para_dir = "/var/local/ams-paragraphs"
 
 labels = sorted(["acknowledgement", "algorithm", "assumption", "caption", "case", "condition", "conjecture", "corollary", "definition", "example",
                  "fact", "lemma", "notation", "other", "paragraph", "problem", "proof", "proposition", "question", "remark", "result", "step", "theorem"])
-vocab_file = "data/vocab.arxmliv.txt"
+vocab_file = "data/vocab.txt"
 vocab_lines = open(vocab_file, "r").readlines()
 w_index = {}
 for v_index, line in enumerate(vocab_lines):
