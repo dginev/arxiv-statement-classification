@@ -23,7 +23,7 @@ def saveCompressed(fh, **namedict):
                                                 allow_pickle=True)
 
 
-path = 'data/arxiv_ams.npz'
+path = 'data/full_ams.npz'
 destination = "data/demo_ams.npz"
 num_words = 200_000
 
