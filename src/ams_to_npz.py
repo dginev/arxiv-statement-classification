@@ -52,27 +52,46 @@ for v_index, line in enumerate(vocab_lines):
 x_paras = []
 y_labels = []
 
-tar = tarfile.open(ams_para_model, "r")
-paragraphs = tar.getmembers()
-
+label_lookup = {}
+label_para_count = {}
 for label_idx, label in enumerate(labels):
-    print("Processing dir: ", label)
-    label_paragraphs = [para for para in paragraphs
-                        if para.name.startswith(label)]
-    print("found %d paragraphs" % len(label_paragraphs))
-    for paragraph in label_paragraphs:
-        w_val = []
-        words = tar.extractfile(paragraph).read().decode('utf-8').split()
-        for word in words:
-            if word in w_index:
-                w_val.append(w_index[word])
-            # else:
-                # Should we drop or use a fake number? Drop for now
-                # w_val.append(-1)
-                # print("unk: ", word)
-        x_paras.append(w_val)
-        y_labels.append(label_idx)
+    label_lookup[label] = label_idx
+    label_para_count[label] = 0
+
+para_idx = 0
+
+tar = tarfile.open(ams_para_model, "r")
+while True:
+    tarinfo = tar.next()
+    if tarinfo is None:
+        break
+    para_idx += 1
+
+    w_val = []
+    label = tarinfo.name.split('/')[0]
+    label_idx = label_lookup[label]
+    label_para_count[label] += 1
+
+    words = tar.extractfile(tarinfo).read().decode('utf-8').split()
+    for word in words:
+        if word in w_index:
+            w_val.append(w_index[word])
+        # else:
+            # Should we drop or use a fake number? Drop for now
+            # w_val.append(-1)
+            # print("unk: ", word)
+    x_paras.append(w_val)
+    y_labels.append(label_idx)
+    if para_idx % 10000 == 0:  # reset members every 100 files, to deallocate memory
+        tar.members = []
+        print("at paragraph %d : ", para_idx)
+        for label in labels:
+            print("-- found %d of %s" % (label_para_count[label], label))
+        print("---")
 
 tar.close()
+
+for label in labels:
+    print("found %d of %s" % (label_para_count[label], label))
 
 saveCompressed(destination, x=x_paras, y=y_labels)
