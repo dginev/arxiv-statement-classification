@@ -16,7 +16,7 @@ from keras.layers import Embedding, Input
 
 def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
               maxlen=None, test_split=0.2, seed=521,
-              start_char=1, oov_char=2, index_from=2, setup_labels=False, full_data=False, **kwargs):
+              start_char=1, oov_char=2, index_from=2, setup_labels=False, full_data=False, max_per_class=5_000, **kwargs):
     """Loads the Reuters newswire classification dataset.
 
     # Arguments
@@ -56,7 +56,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     # TODO: BAD!!! If we are sampling a small amount from the data, it needs to preserve the distribution.
     #       At least grab a max per category.
 
-    max_per_class = 50_000  # Leads to 659_216 total expressions
+    # max_per_class = 50_000 Leads to 659_216 total expressions
     # A "Zero Rule" classifier with this 50,000 restriction will have accuracy of 0.076
     #               if strict classes are on, the zero rule accuracy would be 0.29
     #               with the f1-based 9 classes, zero rule wouild be a very high 0.667
