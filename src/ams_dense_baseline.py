@@ -38,12 +38,14 @@ K.set_session(session)
 #                                               a maxlen of 150 fits 94.03%, and a maxlen of 600 covers 99.91% of paragraphs
 maxlen = 300  # sentences of 25 words each? Also compare "15", 50" vs "250", "500" word window extremes
 # what is the optimum here? the average arXiv document seems to have 110 paragraphs ?!
-batch_size = 128  # 32, 64, 128
 
 # Results on arxiv 08.2018 demo_ams.npz
 #                      precision    recall  f1-score   support
-# 23 classes: avg / total   0.33      0.32      0.30     91727
-# 9 classes:                0.67      0.70      0.66     91727
+# 23 classes: avg / total   0.34      0.33      0.31     91727 (50k)
+#                           0.23      0.22      0.22     15065 (5k)
+#
+# 9 classes:                0.67      0.71      0.67     91727 (50k)
+#                           0.59      0.65      0.59     15065 (5k)
 
 setup_labels = 'f1-envs'  # False
 classes_for_label = {
@@ -59,7 +61,8 @@ if setup_labels and setup_labels in classes_for_label:
 
 print('Loading data...')
 (x_train, y_train), (x_test, y_test) = arxiv.load_data(
-    maxlen=maxlen, setup_labels=setup_labels, full_data=False)
+    maxlen=maxlen, setup_labels=setup_labels, full_data=False,  # max_per_class=50_000
+)
 print(len(x_train), 'train sequences')
 print(len(x_test), 'test sequences')
 gc.collect()
@@ -77,7 +80,7 @@ print('y_train shape:', y_train.shape)
 print('y_test shape:', y_test.shape)
 
 embedding_layer = arxiv.build_embedding_layer(
-    maxlen=maxlen, batch_size=batch_size, mask_zero=False)
+    maxlen=maxlen, mask_zero=False)
 gc.collect()
 
 print("setting up model layout...")
@@ -86,6 +89,8 @@ model.add(embedding_layer)
 model.add(Dropout(0.5))
 model.add(Flatten())
 model.add(Dense(maxlen, activation='relu'))
+model.add(Dense(maxlen, activation='relu'))
+model.add(Dropout(0.2))
 model.add(Dense(n_classes, activation='softmax'))
 # try using different optimizers and different optimizer configs?
 model.compile(loss='sparse_categorical_crossentropy',
@@ -95,7 +100,7 @@ model.compile(loss='sparse_categorical_crossentropy',
 print('Training model...')
 
 model.fit(x_train, y_train,
-          batch_size=batch_size,
+          batch_size=128,  # 32, 64, 128
           epochs=10,
           validation_split=0.2)
 
