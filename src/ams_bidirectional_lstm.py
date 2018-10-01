@@ -34,11 +34,16 @@ config = tf.ConfigProto(intra_op_parallelism_threads=16,
 session = tf.Session(config=config)
 K.set_session(session)
 
+# 08.2017 (mathformula replacements)
 # Analyzing the arxiv dataset seems to indicate a maxlen of 300 is needed to fit 99.2% of the data
 #                                               a maxlen of 150 fits 94.03%, and a maxlen of 600 covers 99.91% of paragraphs
-maxlen = 300  # sentences of 25 words each? Also compare "15", 50" vs "250", "500" word window extremes
+# 08.2018 (subformula lexemes)
+# Analyzing the arxiv dataset seems to indicate a maxlen of 960 is needed to fit 99.2% of the data
+#                                               a maxlen of 480 fits 96.03%, and a maxlen of 300 covers 90.0% of paragraphs
 
-setup_labels = False  # 'f1-envs'
+maxlen = 480
+
+setup_labels = 'f1-envs'  # False
 classes_for_label = {
     "no-other": 22,
     "strict-envs": 11,
@@ -53,7 +58,8 @@ if setup_labels and setup_labels in classes_for_label:
 
 print('Loading data...')
 (x_train, y_train), (x_test, y_test) = arxiv.load_data(
-    maxlen=maxlen, setup_labels=setup_labels, full_data=False)
+    maxlen=maxlen, setup_labels=setup_labels, full_data=False, max_per_class=50_000
+)
 print(len(x_train), 'train sequences')
 print(len(x_test), 'test sequences')
 gc.collect()
@@ -74,16 +80,19 @@ embedding_layer = arxiv.build_embedding_layer(maxlen=maxlen)
 gc.collect()
 
 print("setting up model layout...")
+model_file = "bilstm-BiLSTMx2-maxhalf-9cat.h5"
+
 model = Sequential()
 model.add(embedding_layer)
-model.add(Dropout(0.5))
-model.add(Bidirectional(LSTM(int(maxlen/2), return_sequences=True)))
-model.add(Bidirectional(LSTM(int(maxlen/2))))
 model.add(Dropout(0.2))
+model.add(Bidirectional(LSTM(int(maxlen/2), return_sequences=True)))
+model.add(Dropout(0.1))
+model.add(Bidirectional(LSTM(int(maxlen/2))))
+model.add(Dropout(0.1))
 model.add(Dense(n_classes, activation='softmax'))
 # try using different optimizers and different optimizer configs?
 model.compile(loss='sparse_categorical_crossentropy',
-              optimizer="nadam",
+              optimizer="adam",
               metrics=[metrics.sparse_categorical_accuracy])
 # summarize the model
 print('Training model...')
@@ -101,8 +110,8 @@ scores = model.evaluate(x_test, y_test, verbose=0)
 print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
 # serialize model to JSON
-print("Saving model to disk...")
-model.save("bilstm-2xBiLSTMxDense-demo.h5")
+print("Saving model to disk : %s ", model_file)
+model.save(model_file)
 
 print("Per-class test measures:")
 y_pred = model.predict_classes(x_test, verbose=1)
