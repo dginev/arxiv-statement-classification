@@ -19,6 +19,9 @@ Some files exceed GitHub's file size limit and need to be setup by hand (TODO: a
 	python3 src/ams_to_npz.py /path/to/vocab.txt /path/to/ams-paragraphs /path/to/destination.npz
 	python3 src/gen_indices.py /path/to/vocab.txt
 	ln -s /path/to/destination.npz data/full_ams.npz
+	# For very large data, unpack the .npz to x.npy and y.npy and use mmap
+	ln -s /path/to/x.npy data/full_ams_x.npy
+	ln -s /path/to/y.npy data/full_ams_y.npy
 	
 	python3 src/demo_npz.py 
 	python3 src/ams_dense_baseline.py
