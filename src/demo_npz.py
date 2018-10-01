@@ -33,21 +33,29 @@ fy = np.memmap(path_y, mode='r')
 # A "Zero Rule" classifier with this restriction will have accuracy of 0.077725805
 max_per_class = 50_000
 print("reducing data to ", max_per_class, " per class...")
-total_paragraphs = 0
+total_count = 0
+selected_count = 0
 selection_counter = {}
 xs_reduced = []
 labels_reduced = []
 
 for (xs, label) in zip(fx, fy):
+    total_count += 1
     if not(label in selection_counter):
         selection_counter[label] = 0
     if selection_counter[label] < max_per_class:
-        selection_counter[label] += 1
         xs_reduced.append(xs)
         labels_reduced.append(label)
-        total_paragraphs += 1
-        if total_paragraphs % 10_000 == 0:
-            print("recorded %d paragraphs..." % total_paragraphs)
 
-print("saving demo data at %s ...", destination)
+        selection_counter[label] += 1
+        selected_count += 1
+        if selected_count % 10_000 == 0:
+            print("checked %d : selected %d paragraphs." %
+                  (total_count, selected_count))
+    elif all([x >= max_per_class for x in selection_counter.values()]):
+        break
+print("Final counts:")
+print(selection_counter)
+print("---")
+print("saving demo data at %s ..." % destination)
 saveCompressed(destination, x=xs_reduced, y=labels_reduced)
