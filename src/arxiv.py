@@ -150,7 +150,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
             # Third attempt, also drop next worst (example), % f1:
             whitelist = {0: 0, 1: 1, 3: 2, 16: 3,
                          2: 4, 8: 5, 15: 6, 19: 7}
-
+            # Classifies into: acknowledgement(0), algorithm(1), caption(2), proof(3), assumption(4), definition(5), problem(6), remark(7), other(8)
             xs_env = []
             labels_env = []
             other_label = len(whitelist)
