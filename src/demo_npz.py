@@ -25,7 +25,6 @@ def saveCompressed(fh, **namedict):
 
 path = 'data/full_ams.npz'
 destination = "data/demo_ams.npz"
-num_words = 200_000
 
 with np.load(path) as f:
     xs, labels = f['x'], f['y']
@@ -44,7 +43,5 @@ for (idx, label) in enumerate(labels):
         selection_counter[label] += 1
         xs_reduced.append(xs[idx])
         labels_reduced.append(label)
-xs = np.array(xs_reduced)
-labels = np.array(labels_reduced)
 
 saveCompressed(destination, x=xs_reduced, y=labels_reduced)
