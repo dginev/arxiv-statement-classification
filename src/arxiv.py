@@ -6,12 +6,14 @@ from __future__ import division
 from __future__ import print_function
 
 from keras.utils.data_utils import get_file
+from keras.preprocessing import sequence
 from keras.preprocessing.sequence import _remove_long_seq
 import numpy as np
 import json
 import warnings
 import gc
 from keras.layers import Embedding, Input
+from sklearn.model_selection import train_test_split
 
 
 def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
@@ -279,6 +281,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     if maxlen:
         print("- maxlen")
         xs, labels = _remove_long_seq(maxlen, xs, labels)
+
     if not num_words:
         num_words = max([max(x) for x in xs])
 
@@ -309,13 +312,14 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
                 print("Iterations: ", iterations)
                 gc.collect()
 
-    idx = int(len(xs) * (1 - test_split))
-    print("performing train/test cutoff at index ", idx, "/", len(xs), '...')
+    # idx = int(len(xs) * (1 - test_split))
+    # at index ", idx, "/", len(xs), '...')
+    if maxlen:
+        print('Pad sequences (samples x time)')
+        xs = sequence.pad_sequences(xs, maxlen=maxlen)
 
-    x_train, x_test = np.array(xs[:idx]), np.array(xs[idx:])
-    y_train, y_test = np.array(labels[:idx]), np.array(labels[idx:])
-
-    return (x_train, y_train), (x_test, y_test)
+    print("performing train/test cutoff")
+    return train_test_split(xs, labels, stratify=labels, test_size=test_split)
 
 
 def get_word_index(path='data/ams_word_index.json'):

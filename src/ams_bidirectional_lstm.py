@@ -16,20 +16,20 @@ import gc
 import json
 
 import tensorflow as tf
-from keras.preprocessing import sequence
 from keras.models import Sequential
 from keras.layers import TimeDistributed, Dense, Dropout, Embedding, LSTM, Bidirectional, Flatten
 from keras import metrics
 from keras import backend as K
 from sklearn.metrics import classification_report
+from sklearn.utils.class_weight import compute_class_weight
 
 import arxiv
 
 # Use full CPU capacity
-gpu_options = tf.GPUOptions(
-    per_process_gpu_memory_fraction=0.333, allow_growth=True)
+# gpu_options = tf.GPUOptions(
+#     per_process_gpu_memory_fraction=0.333, allow_growth=True)
 config = tf.ConfigProto(intra_op_parallelism_threads=16,
-                        inter_op_parallelism_threads=16, allow_soft_placement=True, gpu_options=gpu_options)
+                        inter_op_parallelism_threads=16, allow_soft_placement=True)  # , gpu_options=gpu_options)
 
 session = tf.Session(config=config)
 K.set_session(session)
@@ -57,16 +57,11 @@ if setup_labels and setup_labels in classes_for_label:
     n_classes = classes_for_label[setup_labels]
 
 print('Loading data...')
-(x_train, y_train), (x_test, y_test) = arxiv.load_data(
-    maxlen=maxlen, setup_labels=setup_labels, full_data=False, max_per_class=50_000
-)
+x_train, x_test, y_train, y_test = arxiv.load_data(maxlen=maxlen,
+                                                   setup_labels=setup_labels, full_data=False, max_per_class=50_000)
 print(len(x_train), 'train sequences')
 print(len(x_test), 'test sequences')
 gc.collect()
-
-print('Pad sequences (samples x time)')
-x_train = sequence.pad_sequences(x_train, maxlen=maxlen)
-x_test = sequence.pad_sequences(x_test, maxlen=maxlen)
 
 y_train = np.array(y_train)
 y_test = np.array(y_test)
@@ -76,11 +71,13 @@ print('x_test shape:', x_test.shape)
 print('y_train shape:', y_train.shape)
 print('y_test shape:', y_test.shape)
 
+class_weights = compute_class_weight('balanced', np.unique(y_train), y_train)
+
 embedding_layer = arxiv.build_embedding_layer(maxlen=maxlen)
 gc.collect()
 
 print("setting up model layout...")
-model_file = "bilstm-BiLSTMx2-maxhalf-9cat.h5"
+model_file = "bilstm-BiLSTMx2-maxhalf-9cat-small.h5"
 
 model = Sequential()
 model.add(embedding_layer)
@@ -93,7 +90,7 @@ model.add(Dense(n_classes, activation='softmax'))
 # try using different optimizers and different optimizer configs?
 model.compile(loss='sparse_categorical_crossentropy',
               optimizer="adam",
-              metrics=[metrics.sparse_categorical_accuracy])
+              weighted_metrics=[metrics.sparse_categorical_accuracy])
 # summarize the model
 print('Training model...')
 print(model.summary())
@@ -101,6 +98,12 @@ print(model.summary())
 model.fit(x_train, y_train,
           # what is the optimum here? the average arXiv document seems to have 110 paragraphs ?!
           batch_size=128,  # 32, 64, 128
+          # Classifies into: acknowledgement(0), algorithm(1), caption(2), proof(3), assumption(4), definition(5), problem(6), remark(7), other(8)
+          # f1-envs only, based on ratios in full dataset
+          # https://docs.google.com/spreadsheets/d/16I9969_QcU4J9EtglGKZpLHVeNcFIeDGNU4trhi53Vc/edit#gid=1538283102
+          #   class_weight={0: 2500, 1: 1000, 2: 12500, 3: 2.6,
+          #                 4: 450, 5: 17, 6: 400, 7: 17, 8: 0.5},
+          class_weight=class_weights,
           epochs=10,
           validation_split=0.2)
 
