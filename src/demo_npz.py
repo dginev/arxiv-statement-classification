@@ -27,6 +27,9 @@ path_x = 'data/full_ams_x.npy'
 path_y = 'data/full_ams_y.npy'
 destination = "data/demo_ams.npz"
 
+# TODO: Note, we serialized the data WRONGLY, so we can no longer reconstruct the paragraph vectors directly from the .NPY file,
+# at least not via the memmap loading scheme. I either need to figure out how to memmap load a multiarray,
+# or need to reserialize with pre-applied sentence padding/trimming to a fixed size. The latter is Suboptimal
 fx = np.memmap(path_x, mode='r')
 fy = np.memmap(path_y, mode='r')
 
@@ -39,7 +42,7 @@ selection_counter = {}
 xs_reduced = []
 labels_reduced = []
 
-for (xs, label) in zip(fx, fy):
+for xs, label in zip(fx, fy):
     total_count += 1
     if not(label in selection_counter):
         selection_counter[label] = 0
@@ -52,10 +55,15 @@ for (xs, label) in zip(fx, fy):
         if selected_count % 10_000 == 0:
             print("checked %d : selected %d paragraphs." %
                   (total_count, selected_count))
+            # print("label: ", label)
+            # print("para: ", xs)
+            # print("---")
     elif all([x >= max_per_class for x in selection_counter.values()]):
         break
+
 print("Final counts:")
-print(selection_counter)
+print("Seen: ", total_count)
+print("Selected: ", selected_count)
 print("---")
 print("saving demo data at %s ..." % destination)
 saveCompressed(destination, x=xs_reduced, y=labels_reduced)
