@@ -11,6 +11,7 @@ import warnings
 import os
 import zipfile
 import io
+import h5py
 
 
 def saveCompressed(fh, **namedict):
@@ -23,18 +24,12 @@ def saveCompressed(fh, **namedict):
                                                 allow_pickle=True)
 
 
-path_x = 'data/full_ams_x.npy'
-path_y = 'data/full_ams_y.npy'
+# source = "data/full_ams.hdf5"
+source = "/var/local/full_ams_08_2018.hdf5"
 destination = "data/demo_ams.npz"
 
-# TODO: Note, we serialized the data WRONGLY, so we can no longer reconstruct the paragraph vectors directly from the .NPY file,
-# at least not via the memmap loading scheme. I either need to figure out how to memmap load a multiarray,
-# or need to reserialize with pre-applied sentence padding/trimming to a fixed size. The latter is Suboptimal
-fx = np.memmap(path_x, mode='r')
-fy = np.memmap(path_y, mode='r')
-
 # A "Zero Rule" classifier with this restriction will have accuracy of 0.077725805
-max_per_class = 50_000
+max_per_class = 250_000
 print("reducing data to ", max_per_class, " per class...")
 total_count = 0
 selected_count = 0
@@ -42,8 +37,14 @@ selection_counter = {}
 xs_reduced = []
 labels_reduced = []
 
+datafile = h5py.File(source, 'r')
+fx = datafile["x"]
+fy = datafile["y"]
+
 for xs, label in zip(fx, fy):
     total_count += 1
+    if xs[0] == 0:
+        continue  # skip padded storage
     if not(label in selection_counter):
         selection_counter[label] = 0
     if selection_counter[label] < max_per_class:
@@ -64,6 +65,8 @@ for xs, label in zip(fx, fy):
 print("Final counts:")
 print("Seen: ", total_count)
 print("Selected: ", selected_count)
+print("By label: ")
+print(selection_counter)
 print("---")
 print("saving demo data at %s ..." % destination)
 saveCompressed(destination, x=xs_reduced, y=labels_reduced)
