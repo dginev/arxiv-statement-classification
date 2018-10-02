@@ -54,22 +54,21 @@ para_idx = 0
 
 tar = tarfile.open(ams_para_model, "r")
 # Big chunks for quick continuous access, but still be able to fit in RAM
-chunk_count = 1_000_000  # tune this by hand for smaller data.
+chunk_size = 1_000_000  # tune this by hand for smaller data.
 
 fp = h5py.File(destination+".hdf5", "w")
-x_dset = fp.create_dataset("x", (chunk_count, max_words), maxshape=(
-    None, max_words), chunks=(chunk_count, max_words))
+x_dset = fp.create_dataset("x", (chunk_size, max_words), maxshape=(
+    None, max_words), chunks=(chunk_size, max_words))
 print("x_dset chunks: ", x_dset.chunks)
 
-y_dset = fp.create_dataset("y", (chunk_count,), maxshape=(
-    None,), chunks=(chunk_count,))
+y_dset = fp.create_dataset("y", (chunk_size,), maxshape=(
+    None,), chunks=(chunk_size,))
 print("y_dset chunks: ", y_dset.chunks)
 
 while True:
     tarinfo = tar.next()
     if tarinfo is None:
         break
-    para_idx += 1
 
     w_val = []
     label = tarinfo.name.split('/')[0]
@@ -85,6 +84,7 @@ while True:
             # w_val.append(-1)
             # print("unk: ", word)
     if len(w_val) > 0:
+        para_idx += 1
         w_val = np.array(w_val[:max_words])
         npad = max_words-len(w_val)
         if npad > 0:
@@ -97,14 +97,14 @@ while True:
             for label in labels:
                 print("-- found %d of %s" % (label_para_count[label], label))
             print("---")
-            if para_idx % chunk_count == 0:
-                x_dset.resize(x_dset.shape[0]+chunk_count, axis=0)
-                x_dset[-chunk_count:] = x_paras[:]
+            if para_idx % chunk_size == 0:
+                x_dset[-chunk_size:] = x_paras[:]
+                x_dset.resize(x_dset.shape[0]+chunk_size, axis=0)
                 x_paras = []
                 print("-- writing hdf5 chunk")
                 print("   new x size: ", x_dset.shape)
-                y_dset.resize(y_dset.shape[0]+chunk_count, axis=0)
-                y_dset[-chunk_count:] = y_labels[:]
+                y_dset[-chunk_size:] = y_labels[:]
+                y_dset.resize(y_dset.shape[0]+chunk_size, axis=0)
                 y_labels = []
                 print("   new y size: ", y_dset.shape)
 
