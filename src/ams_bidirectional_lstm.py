@@ -20,6 +20,7 @@ from keras.models import Sequential
 from keras.layers import TimeDistributed, Dense, Dropout, Embedding, LSTM, Bidirectional, Flatten
 from keras import metrics
 from keras import backend as K
+from keras.callbacks import ModelCheckpoint
 from sklearn.metrics import classification_report
 from sklearn.utils.class_weight import compute_class_weight
 
@@ -77,14 +78,14 @@ embedding_layer = arxiv.build_embedding_layer(maxlen=maxlen)
 gc.collect()
 
 print("setting up model layout...")
-model_file = "bilstm-BiLSTMx2-maxhalf-9cat-small.h5"
+model_file = "bilstm-120-dual-9cat"
 
 model = Sequential()
 model.add(embedding_layer)
 model.add(Dropout(0.2))
-model.add(Bidirectional(LSTM(int(maxlen/2), return_sequences=True)))
+model.add(Bidirectional(LSTM(int(maxlen/4), return_sequences=True)))
 model.add(Dropout(0.1))
-model.add(Bidirectional(LSTM(int(maxlen/2))))
+model.add(Bidirectional(LSTM(int(maxlen/4))))
 model.add(Dropout(0.1))
 model.add(Dense(n_classes, activation='softmax'))
 # try using different optimizers and different optimizer configs?
@@ -94,6 +95,13 @@ model.compile(loss='sparse_categorical_crossentropy',
 # summarize the model
 print('Training model...')
 print(model.summary())
+
+# Keep only a single checkpoint, the best over test accuracy.
+checkpoint = ModelCheckpoint(model_file+"-checkpoint.h5",
+                             monitor='val_acc',
+                             verbose=1,
+                             save_best_only=True,
+                             mode='max')
 
 model.fit(x_train, y_train,
           # what is the optimum here? the average arXiv document seems to have 110 paragraphs ?!
@@ -105,17 +113,19 @@ model.fit(x_train, y_train,
           #                 4: 450, 5: 17, 6: 400, 7: 17, 8: 0.5},
           class_weight=class_weights,
           epochs=10,
+          verbose=1,
+          callbacks=[checkpoint],
           validation_split=0.2)
 
-# evaluate the model
-print("Evaluating model on test data...")
-scores = model.evaluate(x_test, y_test, verbose=0)
-print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+# evaluate the model -- redundant with per-class tests
+# print("Evaluating model on test data...")
+# scores = model.evaluate(x_test, y_test, verbose=1, batch_size=128)
+# print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
 # serialize model to JSON
-print("Saving model to disk : %s ", model_file)
-model.save(model_file)
+print("Saving model to disk : %s " % model_file)
+model.save(model_file+'.h5')
 
 print("Per-class test measures:")
-y_pred = model.predict_classes(x_test, verbose=1)
+y_pred = model.predict_classes(x_test, verbose=1, batch_size=128)
 print(classification_report(y_test, y_pred))
