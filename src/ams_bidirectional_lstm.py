@@ -78,7 +78,7 @@ embedding_layer = arxiv.build_embedding_layer(maxlen=maxlen)
 gc.collect()
 
 print("setting up model layout...")
-model_file = "bilstm-120-dual-9cat"
+model_file = "bilstm-120-dual-9cat-bigbatch"
 
 model = Sequential()
 model.add(embedding_layer)
@@ -98,14 +98,14 @@ print(model.summary())
 
 # Keep only a single checkpoint, the best over test accuracy.
 checkpoint = ModelCheckpoint(model_file+"-checkpoint.h5",
-                             monitor='val_acc',
+                             monitor='val_weighted_sparse_categorical_accuracy',
                              verbose=1,
                              save_best_only=True,
                              mode='max')
 
 model.fit(x_train, y_train,
           # what is the optimum here? the average arXiv document seems to have 110 paragraphs ?!
-          batch_size=128,  # 32, 64, 128
+          batch_size=256,  # 32, 64, 128
           # Classifies into: acknowledgement(0), algorithm(1), caption(2), proof(3), assumption(4), definition(5), problem(6), remark(7), other(8)
           # f1-envs only, based on ratios in full dataset
           # https://docs.google.com/spreadsheets/d/16I9969_QcU4J9EtglGKZpLHVeNcFIeDGNU4trhi53Vc/edit#gid=1538283102
@@ -119,7 +119,7 @@ model.fit(x_train, y_train,
 
 # evaluate the model -- redundant with per-class tests
 # print("Evaluating model on test data...")
-# scores = model.evaluate(x_test, y_test, verbose=1, batch_size=128)
+# scores = model.evaluate(x_test, y_test, verbose=1, batch_size=256)
 # print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
 # serialize model to JSON
@@ -127,5 +127,5 @@ print("Saving model to disk : %s " % model_file)
 model.save(model_file+'.h5')
 
 print("Per-class test measures:")
-y_pred = model.predict_classes(x_test, verbose=1, batch_size=128)
+y_pred = model.predict_classes(x_test, verbose=1, batch_size=256)
 print(classification_report(y_test, y_pred))
