@@ -58,11 +58,11 @@ chunk_size = 1_000_000  # tune this by hand for smaller data.
 
 fp = h5py.File(destination+".hdf5", "w")
 x_dset = fp.create_dataset("x", (chunk_size, max_words), maxshape=(
-    None, max_words), chunks=(chunk_size, max_words))
+    None, max_words), chunks=(chunk_size, max_words), dtype="int")
 print("x_dset chunks: ", x_dset.chunks)
 
 y_dset = fp.create_dataset("y", (chunk_size,), maxshape=(
-    None,), chunks=(chunk_size,))
+    None,), chunks=(chunk_size,), dtype="int")
 print("y_dset chunks: ", y_dset.chunks)
 
 while True:
