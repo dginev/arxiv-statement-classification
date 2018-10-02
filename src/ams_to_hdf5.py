@@ -84,27 +84,29 @@ while True:
             # Should we drop or use a fake number? Drop for now
             # w_val.append(-1)
             # print("unk: ", word)
-    w_val = np.array(w_val[:max_words])
-    npad = max_words-len(w_val)
-    if npad > 0:
-        w_val = np.pad(w_val, (0, npad), mode='constant')
-    x_paras.append(w_val)
-    y_labels.append(label_idx)
-    if para_idx % 10_000 == 0:  # reset members every 100 files, to deallocate memory
-        tar.members = []
-        print("at paragraph %d : " % para_idx)
-        for label in labels:
-            print("-- found %d of %s" % (label_para_count[label], label))
-        print("---")
-        if para_idx % chunk_count == 0:
-            x_dset.resize(x_dset.shape[0]+chunk_count, axis=0)
-            x_dset[-chunk_count:] = x_paras[:]
-            x_paras = []
-            print(x_dset.shape)
-            y_dset.resize(y_dset.shape[0]+chunk_count, axis=0)
-            y_dset[-chunk_count:] = y_labels[:]
-            y_labels = []
-            print(y_dset.shape)
+    if len(w_val) > 0:
+        w_val = np.array(w_val[:max_words])
+        npad = max_words-len(w_val)
+        if npad > 0:
+            w_val = np.pad(w_val, (0, npad), mode='constant')
+        x_paras.append(w_val)
+        y_labels.append(label_idx)
+        if para_idx % 10_000 == 0:  # reset members every 100 files, to deallocate memory
+            tar.members = []
+            print("at paragraph %d : " % para_idx)
+            for label in labels:
+                print("-- found %d of %s" % (label_para_count[label], label))
+            print("---")
+            if para_idx % chunk_count == 0:
+                x_dset.resize(x_dset.shape[0]+chunk_count, axis=0)
+                x_dset[-chunk_count:] = x_paras[:]
+                x_paras = []
+                print("-- writing hdf5 chunk")
+                print("   new x size: ", x_dset.shape)
+                y_dset.resize(y_dset.shape[0]+chunk_count, axis=0)
+                y_dset[-chunk_count:] = y_labels[:]
+                y_labels = []
+                print("   new y size: ", y_dset.shape)
 
 tar.close()
 
