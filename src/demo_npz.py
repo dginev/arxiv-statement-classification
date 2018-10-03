@@ -24,8 +24,7 @@ def saveCompressed(fh, **namedict):
                                                 allow_pickle=True)
 
 
-# source = "data/full_ams.hdf5"
-source = "/var/local/full_ams_08_2018.hdf5"
+source = "data/full_ams.hdf5"
 destination = "data/demo_ams.npz"
 
 # A "Zero Rule" classifier with this restriction will have accuracy of 0.077725805
