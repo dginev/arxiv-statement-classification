@@ -14,6 +14,7 @@ import warnings
 import gc
 from keras.layers import Embedding, Input
 from sklearn.model_selection import train_test_split
+import h5py
 
 
 def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
@@ -50,10 +51,16 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     # path = get_file(path, origin='https://s3.amazonaws.com/text-datasets/reuters.npz',
     #                 file_hash='87aedbeb0cb229e378797a632c1997b6')
 
+    xs, labels = [], []
     if full_data:
-        path = "data/full_ams.npz"
-    with np.load(path) as f:
-        xs, labels = f['x'], f['y']
+        max_per_class = None
+        path = "data/full_ams.hdf5"
+        datafile = h5py.File(path, 'r')
+        xs = datafile["x"]
+        labels = datafile["y"]
+    else:
+        with np.load(path) as f:
+            xs, labels = f['x'], f['y']
 
     # TODO: BAD!!! If we are sampling a small amount from the data, it needs to preserve the distribution.
     #       At least grab a max per category.
@@ -63,29 +70,28 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     #               if strict classes are on, the zero rule accuracy would be 0.29
     #               with the f1-based 9 classes, zero rule wouild be a very high 0.667
 
-    if full_data:
-        # A "Zero Rule" classifier with this restriction and f1-env will have accuracy of 0.62
-        #   total paragraphs would be 14,740,530, with Other numbered at 9,137,806
-        max_per_class = 500_000
+    # A "Zero Rule" classifier with this restriction and f1-env will have accuracy of 0.62
+    #   total paragraphs would be 14,740,530, with Other numbered at 9,137,806
 
-    # Also drops empty rows, and rows with NaN, just in case
-    print("reducing data to ", max_per_class, " per class...")
-    selection_counter = {}
-    xs_reduced = []
-    labels_reduced = []
+    if max_per_class != None:
+        # Also drops empty rows, and rows with NaN, just in case
+        print("reducing data to ", max_per_class, " per class...")
+        selection_counter = {}
+        xs_reduced = []
+        labels_reduced = []
 
-    for (idx, label) in enumerate(labels):
-        if not(label in selection_counter):
-            selection_counter[label] = 0
-        if selection_counter[label] < max_per_class:
-            x = xs[idx]
-            if len(x) > 0 and not(np.isnan(np.min(x))):
-                selection_counter[label] += 1
-                xs_reduced.append(x)
-                labels_reduced.append(label)
-    xs = np.array(xs_reduced)
-    labels = np.array(labels_reduced)
-    gc.collect()
+        for (idx, label) in enumerate(labels):
+            if not(label in selection_counter):
+                selection_counter[label] = 0
+            if selection_counter[label] < max_per_class:
+                x = xs[idx]
+                if len(x) > 0 and not(np.isnan(np.min(x))):
+                    selection_counter[label] += 1
+                    xs_reduced.append(x)
+                    labels_reduced.append(label)
+        xs = np.array(xs_reduced)
+        labels = np.array(labels_reduced)
+        gc.collect()
 
     if setup_labels:
         # strict_dict = {
@@ -150,13 +156,18 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
             #              2: 4, 8: 5, 9: 6, 15: 7, 19: 8}
             #
             # Third attempt, also drop next worst (example), % f1:
-            whitelist = {0: 0, 1: 1, 3: 2, 16: 3,
-                         2: 4, 8: 5, 15: 6, 19: 7}
-            # Classifies into: acknowledgement(0), algorithm(1), caption(2), proof(3), assumption(4), definition(5), problem(6), remark(7), other(8)
+            # whitelist = {0: 0, 1: 1, 3: 2, 16: 3,
+            #              2: 4, 8: 5, 15: 6, 19: 7}
+            # result: acknowledgement(0), algorithm(1), caption(2), proof(3), assumption(4), definition(5), problem(6), remark(7), other(8)
+
+            # Fourth attempt, also drop next worst (assumption, remark):
+            whitelist = {0: 0, 1: 1, 3: 2, 16: 3, 8: 4, 15: 5}
+            # result: acknowledgement(0), algorithm(1), caption(2), proof(3), definition(4), problem(5), other(6)
             xs_env = []
             labels_env = []
-            other_label = len(whitelist)
-            print("using f1-based label whitelist of size ", len(whitelist)+1)
+            other_label = len(set(whitelist.values()))
+            print("using f1-based label whitelist of size ", other_label+1)
+            # This is too eager - requires loading xs_env into memory fully, which is impossible for the full data...
             for (idx, label) in enumerate(labels):
                 xs_env.append(xs[idx])
                 if label in whitelist:
@@ -269,7 +280,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
                 print("Iterations: ", iterations)
                 gc.collect()
     elif index_from:
-        xs_len = int(len(xs))
+        xs_len = len(xs)
         iterations = 0
         while iterations < xs_len:
             xs[iterations] = [w + index_from for w in xs[iterations]]
@@ -279,7 +290,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
                 gc.collect()
 
     if maxlen:
-        print("- maxlen")
+        print("- maxlen %d" % maxlen)
         xs, labels = _remove_long_seq(maxlen, xs, labels)
 
     if not num_words:
