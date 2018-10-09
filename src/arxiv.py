@@ -17,8 +17,8 @@ from sklearn.model_selection import train_test_split
 import h5py
 
 
-def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
-              maxlen=None, test_split=0.2, seed=521,
+def load_data(path='data/demo_ams_1m.npz', num_words=200_000, skip_top=0,
+              maxlen=None, test_split=0.2, seed=521, shuffle=True,
               start_char=1, oov_char=2, index_from=2, setup_labels=False, full_data=False, max_per_class=5_000, **kwargs):
     """Loads the Reuters newswire classification dataset.
 
@@ -163,19 +163,21 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
             # Fourth attempt, also drop next worst (assumption, remark):
             whitelist = {0: 0, 1: 1, 3: 2, 16: 3, 8: 4, 15: 5}
             # result: acknowledgement(0), algorithm(1), caption(2), proof(3), definition(4), problem(5), other(6)
-            xs_env = []
             labels_env = []
             other_label = len(set(whitelist.values()))
-            print("using f1-based label whitelist of size ", other_label+1)
+            print("using f1-based label whitelist of size %d" % (other_label+1))
             # This is too eager - requires loading xs_env into memory fully, which is impossible for the full data...
-            for (idx, label) in enumerate(labels):
-                xs_env.append(xs[idx])
+            iterations = 0
+            for label in labels:
+                iterations += 1
+                if iterations % 1_000_000 == 0:
+                    print("Iterations %d" % iterations)
                 if label in whitelist:
                     labels_env.append(whitelist[label])
                 else:
                     labels_env.append(other_label)
-            xs = np.array(xs_env)
             labels = np.array(labels_env)
+
         elif setup_labels == "strict-envs":
             strict_envs = {
                 0: 10,
@@ -251,14 +253,15 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
             labels = np.array(labels_env)
         gc.collect()
 
-    print("shuffling data...")
-    np.random.seed(seed)
-    indices = np.arange(len(xs))
-    np.random.shuffle(indices)
+    if not(full_data) and shuffle:
+        print("shuffling data...")
+        np.random.seed(seed)
+        indices = np.arange(len(xs))
+        np.random.shuffle(indices)
 
-    xs = xs[indices]
-    labels = labels[indices]
-    gc.collect()
+        xs = xs[indices]
+        labels = labels[indices]
+        gc.collect()
 
     # Might as well report a summary of what is in the labels...
     label_summary = dict.fromkeys(range(0, 23), 0)
@@ -267,67 +270,68 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,
     label_summary = {k: v for k, v in label_summary.items() if v > 0}
     print("Label summary: ", label_summary)
 
-    print("preparing sets...")
-    print("- start char and index_from")
-    if start_char is not None:
-        xs_len = len(xs)
-        iterations = 0
-        while iterations < xs_len:
-            xs[iterations] = [start_char] + \
-                [w + index_from for w in xs[iterations]]
-            iterations += 1
-            if iterations % 1_000_000 == 0:
-                print("Iterations: ", iterations)
-                gc.collect()
-    elif index_from:
-        xs_len = len(xs)
-        iterations = 0
-        while iterations < xs_len:
-            xs[iterations] = [w + index_from for w in xs[iterations]]
-            iterations += 1
-            if iterations % 1_000_000 == 0:
-                print("Iterations: ", iterations)
-                gc.collect()
+    if not(full_data):
+        print("preparing sets...")
+        print("- start char and index_from")
+        if start_char is not None:
+            xs_len = len(xs)
+            iterations = 0
+            while iterations < xs_len:
+                xs[iterations] = [start_char] + \
+                    [w + index_from for w in xs[iterations]]
+                iterations += 1
+                if iterations % 1_000_000 == 0:
+                    print("Iterations: ", iterations)
+                    gc.collect()
+        elif index_from:
+            xs_len = len(xs)
+            iterations = 0
+            while iterations < xs_len:
+                xs[iterations] = [w + index_from for w in xs[iterations]]
+                iterations += 1
+                if iterations % 1_000_000 == 0:
+                    print("Iterations: ", iterations)
+                    gc.collect()
 
-    if maxlen:
-        print("- maxlen %d" % maxlen)
-        xs, labels = _remove_long_seq(maxlen, xs, labels)
+        if maxlen:
+            print("- maxlen %d" % maxlen)
+            xs, labels = _remove_long_seq(maxlen, xs, labels)
 
-    if not num_words:
-        num_words = max([max(x) for x in xs])
+        if not num_words:
+            num_words = max([max(x) for x in xs])
 
-    print("- oov char")
-    # by convention, use 2 as OOV word
-    # reserve 'index_from' (=2 by default, as the para index starts at 1) characters:
-    # 0 (padding), 1 (start), 2 (OOV)
-    # 3 is the most common word ('the')
-    if oov_char is not None:
-        xs_len = int(len(xs))
-        iterations = 0
-        while iterations < xs_len:
-            xs[iterations] = [w if skip_top <= w <
-                              num_words else oov_char for w in xs[iterations]]
-            iterations += 1
-            if iterations % 1_000_000 == 0:
-                print("Iterations: ", iterations)
-                gc.collect()
+        print("- oov char")
+        # by convention, use 2 as OOV word
+        # reserve 'index_from' (=2 by default, as the para index starts at 1) characters:
+        # 0 (padding), 1 (start), 2 (OOV)
+        # 3 is the most common word ('the')
+        if oov_char is not None:
+            xs_len = int(len(xs))
+            iterations = 0
+            while iterations < xs_len:
+                xs[iterations] = [w if skip_top <= w <
+                                  num_words else oov_char for w in xs[iterations]]
+                iterations += 1
+                if iterations % 1_000_000 == 0:
+                    print("Iterations: ", iterations)
+                    gc.collect()
 
-    else:
-        xs_len = int(len(xs))
-        iterations = 0
-        while iterations < xs_len:
-            xs[iterations] = [w for w in xs[iterations]
-                              if skip_top <= w < num_words]
-            iterations += 1
-            if iterations % 1_000_000 == 0:
-                print("Iterations: ", iterations)
-                gc.collect()
+        else:
+            xs_len = int(len(xs))
+            iterations = 0
+            while iterations < xs_len:
+                xs[iterations] = [w for w in xs[iterations]
+                                  if skip_top <= w < num_words]
+                iterations += 1
+                if iterations % 1_000_000 == 0:
+                    print("Iterations: ", iterations)
+                    gc.collect()
 
-    # idx = int(len(xs) * (1 - test_split))
-    # at index ", idx, "/", len(xs), '...')
-    if maxlen:
-        print('Pad sequences (samples x time)')
-        xs = sequence.pad_sequences(xs, maxlen=maxlen)
+        # idx = int(len(xs) * (1 - test_split))
+        # at index ", idx, "/", len(xs), '...')
+        if maxlen:
+            print('Pad sequences (samples x time)')
+            xs = sequence.pad_sequences(xs, maxlen=maxlen)
 
     print("performing train/test cutoff")
     return train_test_split(xs, labels, stratify=labels, test_size=test_split)

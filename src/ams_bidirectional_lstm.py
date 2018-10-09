@@ -61,7 +61,7 @@ model_file = "bilstm%d_batch%d_cat%d" % (layer_size, batch, n_classes)
 
 print('Loading data...')
 x_train, x_test, y_train, y_test = arxiv.load_data(maxlen=None, start_char=None, num_words=1_000_000,
-                                                   setup_labels=setup_labels, full_data=False, max_per_class=5_000)
+                                                   shuffle=False, setup_labels=setup_labels, full_data=False, max_per_class=None)
 print(len(x_train), 'train sequences')
 print(len(x_test), 'test sequences')
 gc.collect()
@@ -87,13 +87,9 @@ model.add(embedding_layer)
 if use_dropout:
     model.add(Dropout(0.2))
 
-model.add(Bidirectional(LSTM(layer_size, return_sequences=True)))
+model.add(Bidirectional(LSTM(layer_size)))
 if use_dropout:
-    model.add(Dropout(0.1))
-
-model.add(Bidirectional(LSTM(layer_size // 2)))
-if use_dropout:
-    model.add(Dropout(0.1))
+    model.add(Dropout(0.2))
 
 model.add(Dense(n_classes, activation='softmax'))
 
