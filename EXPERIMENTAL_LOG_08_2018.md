@@ -308,7 +308,7 @@ AMS Paragraphs from arXiv 08.2018
 
  - BiLSTM(120):
     `0.78      0.79      0.78     21722`
- 
+
  - BiLSTM(120) + Dense(120):
     `0.78      0.79      0.78     21722`
  
@@ -347,11 +347,27 @@ AMS Paragraphs from arXiv 08.2018
                 6       0.53      0.45      0.48      1000
                 7       0.86      0.93      0.90     15447
     ```
-    
+
 - BiLSTM(128), 7 classes (no assumption, no remark)
-    [ongoing]
+    `0.87      0.87      0.87     21722`
+
+    ```
+    Per-class test measures:
+    21722/21722 [==============================] - 38s 2ms/step
+                precision    recall  f1-score   support
+
+              0       0.98      1.00      0.99      1000
+              1       0.88      0.78      0.83      1000
+              2       0.92      0.75      0.83       275
+              3       0.64      0.47      0.54      1000
+              4       0.56      0.53      0.54      1000
+              5       0.76      0.39      0.52      1000
+              6       0.90      0.95      0.92     16447
+    ```
+
 - BiLSTM(128) + BiLSTM(64), 7 classes (no assumption, no remark)
-    [ongoing]
+   `0.87      0.87      0.87     21722`
+
 
 
 6. 250k, BiLSTM(120) x 2, batch 256
