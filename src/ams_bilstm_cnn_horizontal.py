@@ -16,8 +16,9 @@ import gc
 import json
 
 import tensorflow as tf
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, LSTM, Bidirectional, TimeDistributed
+from keras.models import Sequential, Model
+from keras.layers import Dense, Dropout, LSTM, Bidirectional, TimeDistributed, Conv1D, GlobalMaxPooling1D, Flatten, BatchNormalization
+from keras.layers.merge import concatenate
 from keras import metrics
 from keras import backend as K
 from keras.callbacks import ModelCheckpoint, EarlyStopping
@@ -28,7 +29,7 @@ import arxiv
 
 # Use full CPU capacity, where possible
 gpu_options = tf.GPUOptions(
-    per_process_gpu_memory_fraction=0.4, allow_growth=True)
+    per_process_gpu_memory_fraction=0.48, allow_growth=True)
 config = tf.ConfigProto(intra_op_parallelism_threads=16,
                         inter_op_parallelism_threads=16, allow_soft_placement=True, gpu_options=gpu_options)
 
@@ -57,11 +58,12 @@ if setup_labels and setup_labels in classes_for_label:
 maxlen = 480
 layer_size = 128  # maxlen // 4
 batch = 256
-model_file = "bilstm%d_batch%d_cat%d_1m" % (layer_size, batch, n_classes)
+model_file = "bilstm%d_conv1d_batch%d_cat%d_exps" % (
+    layer_size, batch, n_classes)
 
 print('Loading data...')
 x_train, x_test, y_train, y_test = arxiv.load_data(maxlen=None, start_char=None, num_words=1_000_000,
-                                                   shuffle=False, setup_labels=setup_labels, full_data=False, max_per_class=None)
+                                                   shuffle=False, setup_labels=setup_labels, full_data=False, max_per_class=5_000)
 print(len(x_train), 'train sequences')
 print(len(x_test), 'test sequences')
 gc.collect()
@@ -76,23 +78,52 @@ print('y_test shape:', y_test.shape)
 
 class_weights = compute_class_weight('balanced', np.unique(y_train), y_train)
 
-embedding_layer = arxiv.build_embedding_layer(maxlen=maxlen)
+(embedding_layer, input_1) = arxiv.build_embedding_layer(
+    with_input=True, maxlen=maxlen, mask_zero=False)
 gc.collect()
 
 print("setting up model layout...")
 use_dropout = True
 
-model = Sequential()
-model.add(embedding_layer)
 if use_dropout:
-    model.add(Dropout(0.2))
+    embedding_layer = Dropout(0.2)(embedding_layer)
 
-model.add(Bidirectional(LSTM(layer_size)))
+bilstm = Bidirectional(
+    LSTM(layer_size))(embedding_layer)
 if use_dropout:
-    model.add(Dropout(0.2))
+    bilstm = Dropout(0.2)(bilstm)
 
-model.add(Dense(n_classes, activation='softmax'))
+tower_32 = Conv1D(filters=16, kernel_size=32, strides=4,
+                  activation="relu", padding='same')(embedding_layer)
+tower_32 = GlobalMaxPooling1D()(BatchNormalization()(tower_32))
+if use_dropout:
+    tower_32 = Dropout(0.2)(tower_32)
 
+tower_16 = Conv1D(filters=32, kernel_size=16, strides=3,
+                  activation="relu", padding='same')(embedding_layer)
+tower_16 = GlobalMaxPooling1D()(BatchNormalization()(tower_16))
+if use_dropout:
+    tower_16 = Dropout(0.2)(tower_16)
+
+tower_8 = Conv1D(filters=64, kernel_size=8, strides=2,
+                 activation="relu", padding='same')(embedding_layer)
+tower_8 = GlobalMaxPooling1D()(BatchNormalization()(tower_8))
+if use_dropout:
+    tower_8 = Dropout(0.2)(tower_8)
+
+tower_4 = Conv1D(filters=128, kernel_size=4,
+                 activation="relu", padding='same')(embedding_layer)
+tower_4 = GlobalMaxPooling1D()(BatchNormalization()(tower_4))
+if use_dropout:
+    tower_4 = Dropout(0.2)(tower_4)
+
+output = concatenate([bilstm, tower_32, tower_16, tower_8, tower_4])
+
+output = Dense(layer_size, activation='relu')(output)
+
+output = Dense(n_classes, activation='softmax')(output)
+# summarize the model
+model = Model(inputs=[input_1], outputs=output)
 model.compile(loss='sparse_categorical_crossentropy',
               optimizer="adam",
               weighted_metrics=[metrics.sparse_categorical_accuracy])
@@ -134,5 +165,8 @@ print("Saving model to disk : %s " % model_file)
 model.save(model_file+'.h5')
 
 print("Per-class test measures:")
-y_pred = model.predict_classes(x_test, verbose=1, batch_size=batch)
+# y_pred = model.predict_classes(x_test, verbose=1, batch_size=batch)
+y_prob = model.predict(x_test, batch_size=batch, verbose=1)
+y_pred = y_prob.argmax(axis=-1)
+
 print(classification_report(y_test, y_pred))
