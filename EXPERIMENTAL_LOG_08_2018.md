@@ -368,9 +368,28 @@ AMS Paragraphs from arXiv 08.2018
 - BiLSTM(128) + BiLSTM(64), 7 classes (no assumption, no remark)
    `0.87      0.87      0.87     21722`
 
+- BiLSTM(128) + Conv1D(100,3) + MaxPooling1D(2) (no assumption, no remark)
+  ```
+  Epoch 00010: val_weighted_sparse_categorical_accuracy did not improve from 0.86753
+  Saving model to disk : bilstm128_2Dcnn_batch256_cat7 
+  Per-class test measures:
+  21722/21722 [==============================] - 34s 2ms/step
+              precision    recall  f1-score   support
+
+            0       0.98      0.99      0.99      1000
+            1       0.89      0.76      0.82      1000
+            2       0.76      0.82      0.79       275
+            3       0.53      0.47      0.50      1000
+            4       0.56      0.48      0.52      1000
+            5       0.68      0.46      0.55      1000
+            6       0.90      0.93      0.91     16447
+
+  avg / total       0.86      0.86      0.86     21722
+  ```
 
 
-6. 250k, BiLSTM(120) x 2, batch 256
+
+6. BiLSTM(120) x 2, batch 256, 250k max class
 ```
   Label summary:  {0: 5063, 1: 13435, 2: 1376, 3: 250000, 4: 30595, 5: 250000, 6: 33146, 7: 250000, 8: 1671041}
 
@@ -427,4 +446,161 @@ AMS Paragraphs from arXiv 08.2018
               8       0.88      0.90      0.89    334209
 
     avg / total       0.83      0.84      0.83    500932
+```
+
+7. BiLSTM(128), batch 256, 1m max class
+
+  - zero-rule baseline is 0.76 for class other(6)
+  
+```
+6203188 train sequences
+1550797 test sequences
+x_train shape: (6203188, 480)
+x_test shape: (1550797, 480)
+y_train shape: (6203188,)
+y_test shape: (1550797,)
+loading word embeddings...
+known dictionary items:  1000298
+setting up model layout...
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_1 (Embedding)      (None, 480, 300)          300089400 
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 480, 300)          0         
+_________________________________________________________________
+bidirectional_1 (Bidirection (None, 256)               439296    
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 256)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 7)                 1799      
+=================================================================
+Total params: 300,530,495
+Trainable params: 441,095
+Non-trainable params: 300,089,400
+_________________________________________________________________
+None
+Training model...
+Train on 4962550 samples, validate on 1240638 samples
+Epoch 1/50
+4962550/4962550 [==============================] - 30292s 6ms/step - loss: 0.3205 - weighted_sparse_categorical_accuracy: 0.8823 - val_loss: 0.2856 - val_weighted_sparse_categorical_accuracy: 0.8957
+
+Epoch 00001: val_weighted_sparse_categorical_accuracy improved from -inf to 0.89572, saving model to bilstm128_batch256_cat7-checkpoint.h5
+Epoch 2/50
+4962550/4962550 [==============================] - 30392s 6ms/step - loss: 0.2907 - weighted_sparse_categorical_accuracy: 0.8948 - val_loss: 0.2788 - val_weighted_sparse_categorical_accuracy: 0.8989
+
+Epoch 00002: val_weighted_sparse_categorical_accuracy improved from 0.89572 to 0.89894, saving model to bilstm128_batch256_cat7-checkpoint.h5
+Epoch 3/50
+4962550/4962550 [==============================] - 30527s 6ms/step - loss: 0.2970 - weighted_sparse_categorical_accuracy: 0.8965 - val_loss: 0.2728 - val_weighted_sparse_categorical_accuracy: 0.8994
+
+Epoch 00003: val_weighted_sparse_categorical_accuracy improved from 0.89894 to 0.89945, saving model to bilstm128_batch256_cat7-checkpoint.h5
+Epoch 4/50
+4962550/4962550 [==============================] - 30363s 6ms/step - loss: 0.2804 - weighted_sparse_categorical_accuracy: 0.8984 - val_loss: 0.2801 - val_weighted_sparse_categorical_accuracy: 0.9002
+
+Epoch 00004: val_weighted_sparse_categorical_accuracy improved from 0.89945 to 0.90024, saving model to bilstm128_batch256_cat7-checkpoint.h5
+Epoch 5/50
+4962550/4962550 [==============================] - 30385s 6ms/step - loss: 0.2858 - weighted_sparse_categorical_accuracy: 0.8989 - val_loss: 0.2728 - val_weighted_sparse_categorical_accuracy: 0.9002
+
+Epoch 00005: val_weighted_sparse_categorical_accuracy did not improve from 0.90024
+Epoch 6/50
+4962550/4962550 [==============================] - 30462s 6ms/step - loss: 0.2743 - weighted_sparse_categorical_accuracy: 0.8998 - val_loss: 0.2653 - val_weighted_sparse_categorical_accuracy: 0.9019
+
+[...]
+
+4962550/4962550 [==============================] - 30703s 6ms/step - loss: 0.2697 - weighted_sparse_categorical_accuracy: 0.9006 - val_loss: 0.2636 - val_weighted_sparse_categorical_accuracy: 0.9021
+
+Epoch 00008: val_weighted_sparse_categorical_accuracy improved from 0.90187 to 0.90208, saving model to bilstm128_batch256_cat7-checkpoint.h5
+
+
+Per-class test measures:
+1550797/1550797 [==============================] - 2751s 2ms/step
+
+                 precision    recall  f1-score   support
+
+acknowledgement       0.54      0.74      0.62      1013
+      algorithm       0.65      0.54      0.59      2687
+        caption       0.92      0.51      0.65       275
+          proof       0.80      0.74      0.77    200000
+     definition       0.84      0.80      0.82    164137
+        problem       0.71      0.36      0.48      6629
+          other       0.93      0.95      0.94   1176056
+
+    avg / total       0.90      0.90      0.90   1550797
+
+```
+
+8. BiLSTM(128) + deep 1D-CNN, 256 batch, 1m max class
+
+  - zero-rule baseline is 0.76 for class other(6)
+
+```
+Label summary:  {0: 5063, 1: 13435, 2: 1376, 3: 1000000, 4: 820683, 5: 33146, 6: 5880282}
+
+6203188 train sequences
+1550797 test sequences
+x_train shape: (6203188, 480)
+x_test shape: (1550797, 480)
+y_train shape: (6203188,)
+y_test shape: (1550797,)
+loading word embeddings...
+known dictionary items:  1000298
+setting up model layout...
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_1 (Embedding)      (None, 480, 300)          300089400 
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 480, 300)          0         
+_________________________________________________________________
+bidirectional_1 (Bidirection (None, 480, 256)          439296    
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 480, 256)          0         
+_________________________________________________________________
+conv1d_1 (Conv1D)            (None, 240, 64)           81984     
+_________________________________________________________________
+max_pooling1d_1 (MaxPooling1 (None, 120, 64)           0         
+_________________________________________________________________
+dropout_3 (Dropout)          (None, 120, 64)           0         
+_________________________________________________________________
+conv1d_2 (Conv1D)            (None, 120, 32)           6176      
+_________________________________________________________________
+max_pooling1d_2 (MaxPooling1 (None, 60, 32)            0         
+_________________________________________________________________
+dropout_4 (Dropout)          (None, 60, 32)            0         
+_________________________________________________________________
+conv1d_3 (Conv1D)            (None, 60, 16)            1040      
+_________________________________________________________________
+max_pooling1d_3 (MaxPooling1 (None, 30, 16)            0         
+_________________________________________________________________
+dropout_5 (Dropout)          (None, 30, 16)            0         
+_________________________________________________________________
+flatten_1 (Flatten)          (None, 480)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 7)                 3367      
+=================================================================
+Total params: 300,621,263
+Trainable params: 531,863
+Non-trainable params: 300,089,400
+_________________________________________________________________
+None
+Training model...
+Train on 4962550 samples, validate on 1240638 samples
+
+4962550/4962550 [==============================] - 23930s 5ms/step - loss: 0.2668 - weighted_sparse_categorical_accuracy: 0.9020 - val_loss: 0.2659 - val_weighted_sparse_categorical_accuracy: 0.9028
+
+Epoch 00005: val_weighted_sparse_categorical_accuracy did not improve from 0.90316
+Saving model to disk : bilstm128_conv1d_batch256_cat7_1m 
+Per-class test measures:
+1550797/1550797 [==============================] - 2381s 2ms/step
+                 precision    recall  f1-score   support
+
+acknowledgement       0.57      0.06      0.11      1013
+      algorithm       0.75      0.37      0.49      2687
+        caption       0.99      0.34      0.51       275
+          proof       0.78      0.79      0.78    200000
+     definition       0.84      0.79      0.82    164137
+        problem       0.68      0.36      0.47      6629
+          other       0.93      0.94      0.94   1176056
+
+    avg / total       0.90      0.90      0.90   1550797
 ```
