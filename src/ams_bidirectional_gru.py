@@ -1,7 +1,4 @@
-'''Trains a Bidirectional LSTM on the arXiv AMS environment classification task.
-
-adapted from the official Keras examples:
-https://github.com/keras-team/keras/blob/master/examples/imdb_bidirectional_lstm.py
+'''Trains a Bidirectional GRU on the arXiv AMS environment classification task.
 '''
 
 # of all the weird dependency hells...
@@ -17,7 +14,7 @@ import json
 
 import tensorflow as tf
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, LSTM, Bidirectional
+from keras.layers import Dense, Dropout, Bidirectional, GRU
 from keras import metrics
 from keras import backend as K
 from keras.callbacks import ModelCheckpoint, EarlyStopping
@@ -57,11 +54,11 @@ if setup_labels and setup_labels in classes_for_label:
 maxlen = 480
 layer_size = 128  # maxlen // 4
 batch = 256
-model_file = "bilstm%d_batch%d_cat%d_1m" % (layer_size, batch, n_classes)
+model_file = "bigru%d_batch%d_cat%d_1m" % (layer_size, batch, n_classes)
 
 print('Loading data...')
 x_train, x_test, y_train, y_test = arxiv.load_data(maxlen=None, start_char=None, num_words=1_000_000,
-                                                   shuffle=False, setup_labels=setup_labels, full_data=False, max_per_class=None)
+                                                   shuffle=True, setup_labels=setup_labels, full_data=False, max_per_class=5_000)
 print(len(x_train), 'train sequences')
 print(len(x_test), 'test sequences')
 gc.collect()
@@ -87,7 +84,7 @@ model.add(embedding_layer)
 if use_dropout:
     model.add(Dropout(0.2))
 
-model.add(Bidirectional(LSTM(layer_size)))
+model.add(Bidirectional(GRU(layer_size)))
 if use_dropout:
     model.add(Dropout(0.2))
 

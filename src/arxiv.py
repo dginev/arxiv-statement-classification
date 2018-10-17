@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 import h5py
 
 
-def load_data(path='data/demo_ams_1m.npz', num_words=200_000, skip_top=0,
+def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,  # _1m
               maxlen=None, test_split=0.2, seed=521, shuffle=True,
               start_char=1, oov_char=2, index_from=2, setup_labels=False, full_data=False, max_per_class=5_000, **kwargs):
     """Loads the Reuters newswire classification dataset.
@@ -159,10 +159,14 @@ def load_data(path='data/demo_ams_1m.npz', num_words=200_000, skip_top=0,
             # whitelist = {0: 0, 1: 1, 3: 2, 16: 3,
             #              2: 4, 8: 5, 15: 6, 19: 7}
             # result: acknowledgement(0), algorithm(1), caption(2), proof(3), assumption(4), definition(5), problem(6), remark(7), other(8)
-
+            #
             # Fourth attempt, also drop next worst (assumption, remark):
-            whitelist = {0: 0, 1: 1, 3: 2, 16: 3, 8: 4, 15: 5}
+            # whitelist = {0: 0, 1: 1, 3: 2, 16: 3, 8: 4, 15: 5}
             # result: acknowledgement(0), algorithm(1), caption(2), proof(3), definition(4), problem(5), other(6)
+            #
+            # Fifth attempt, also drop next worst (algorithm, caption):
+            whitelist = {0: 0, 16: 1, 8: 2, 15: 3}
+            # result: acknowledgement(0), proof(1), definition(2), problem(3), other(4)
             labels_env = []
             other_label = len(set(whitelist.values()))
             print("using f1-based label whitelist of size %d" % (other_label+1))
