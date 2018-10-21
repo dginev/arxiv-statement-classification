@@ -795,16 +795,16 @@ With: acknowledgement(0), definition(1), example(2), lemma+theorem+proposition(3
 Label summary:  {0: 4786, 1: 693130, 2: 248706, 3: 2924838, 4: 30089, 5: 1000000}
 Saving model to disk : v2_bilstm128_batch256_cat6_gpu 
 
-             precision    recall  f1-score   support
+                   precision    recall  f1-score   support
 
-          0       0.98      0.99      0.99       957
-          1       0.93      0.90      0.92    138626
-          2       0.83      0.71      0.76     49741
-          3       0.95      0.98      0.97    584968
-          4       0.84      0.77      0.81      6018
-          5       0.96      0.93      0.94    200000
+acknowledgement       0.98      0.99      0.99       957
+     definition       0.93      0.90      0.92    138626
+        example       0.83      0.71      0.76     49741
+        theorem       0.95      0.98      0.97    584968
+        problem       0.84      0.77      0.81      6018
+          proof       0.96      0.93      0.94    200000
 
-avg / total       0.94      0.94      0.94    980310
+    avg / total       0.94      0.94      0.94    980310
 
 ```
 
