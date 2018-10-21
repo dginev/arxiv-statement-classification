@@ -28,7 +28,7 @@ import arxiv
 
 # Use full CPU capacity, where possible
 gpu_options = tf.GPUOptions(
-    per_process_gpu_memory_fraction=0.4, allow_growth=True)
+    per_process_gpu_memory_fraction=0.95, allow_growth=False)
 config = tf.ConfigProto(intra_op_parallelism_threads=16,
                         inter_op_parallelism_threads=16, allow_soft_placement=True, gpu_options=gpu_options)
 
@@ -87,9 +87,21 @@ model.add(embedding_layer)
 if use_dropout:
     model.add(Dropout(0.2))
 
-model.add(Bidirectional(CuDNNLSTM(layer_size)))
+# model.add(Bidirectional(CuDNNLSTM(layer_size)))
+# if use_dropout:
+#     model.add(Dropout(0.2))
+
+model.add(Bidirectional(CuDNNLSTM(layer_size, return_sequences=True)))
 if use_dropout:
     model.add(Dropout(0.2))
+
+model.add(Bidirectional(CuDNNLSTM(layer_size // 2, return_sequences=True)))
+if use_dropout:
+    model.add(Dropout(0.1))
+
+model.add(CuDNNLSTM(layer_size // 2))
+if use_dropout:
+    model.add(Dropout(0.1))
 
 model.add(Dense(n_classes, activation='softmax'))
 

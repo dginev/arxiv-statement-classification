@@ -89,8 +89,8 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
                     selection_counter[label] += 1
                     xs_reduced.append(x)
                     labels_reduced.append(label)
-        xs = np.array(xs_reduced)
-        labels = np.array(labels_reduced)
+        xs = xs_reduced
+        labels = labels_reduced
         xs_reduced = []
         labels_reduced = []
         gc.collect()
