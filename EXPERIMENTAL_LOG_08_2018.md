@@ -604,3 +604,209 @@ acknowledgement       0.57      0.06      0.11      1013
 
     avg / total       0.90      0.90      0.90   1550797
 ```
+
+9. BiLSTM(240) + Dense(960), batch 128, 5 classes, 1m class max
+```
+  _________________________________________________________________
+  Layer (type)                 Output Shape              Param #   
+  =================================================================
+  embedding_1 (Embedding)      (None, 480, 300)          300089400 
+  _________________________________________________________________
+  dropout_1 (Dropout)          (None, 480, 300)          0         
+  _________________________________________________________________
+  bidirectional_1 (Bidirection (None, 480)               1040640   
+  _________________________________________________________________
+  dropout_2 (Dropout)          (None, 480)               0         
+  _________________________________________________________________
+  dense_1 (Dense)              (None, 960)               461760    
+  _________________________________________________________________
+  dropout_3 (Dropout)          (None, 960)               0         
+  _________________________________________________________________
+  dense_2 (Dense)              (None, 5)                 4805      
+  =================================================================
+  Total params: 301,596,605
+  Trainable params: 1,507,205
+  Non-trainable params: 300,089,400
+
+                  precision    recall  f1-score   support
+
+acknowledgement   0.41      0.32      0.36      1013
+          proof   0.76      0.78      0.77    200000
+     definition   0.82      0.80      0.81    164137
+        problem   0.64      0.39      0.48      6629
+          other   0.93      0.94      0.93   1179018
+
+    avg / total   0.90      0.90      0.90   1550797
+```
+
+10. BiLSTM(128), Dense(5, sigmoid), nadam, 1m max class
+```
+             precision    recall  f1-score   support
+
+          0       0.52      0.86      0.65      1013
+          1       0.80      0.74      0.77    200000
+          2       0.81      0.81      0.81    164137
+          3       0.65      0.38      0.48      6629
+          4       0.93      0.94      0.94   1179018
+
+avg / total       0.90      0.90      0.90   1550797
+```
+11. BiLSTM(128), Dense(5, softmax), adam, 1m max class
+```
+precision    recall  f1-score   support
+
+          0       0.58      0.54      0.56      1013
+          1       0.81      0.74      0.78    200000
+          2       0.86      0.78      0.82    164137
+          3       0.68      0.40      0.51      6629
+          4       0.93      0.95      0.94   1179018
+
+avg / total       0.90      0.91      0.90   1550797
+
+```
+
+11. v2 paragraph dataset, BiLSTM(128), Dense(5, softmax), adam, 1m max class
+```
+Label summary:  {0: 4786, 1: 1000000, 2: 693130, 3: 30089, 4: 5462069}
+
+          0       0.64      0.13      0.22       957
+          1       0.82      0.87      0.85    200000
+          2       0.85      0.85      0.85    138626
+          3       0.73      0.39      0.51      6018
+          4       0.96      0.95      0.95   1092414
+
+avg / total       0.93      0.92      0.92   1438015
+
+```
+
+12. v2 dataset,  BiLSTM(128), Dense(5, softmax), adam, 1m max class
+```
+  Saving model to disk : v2_bilstm128_batch256_cat23_gpu 
+  Per-class test measures:
+  1438015/1438015 [==============================] - 192s 134us/step
+                    precision     recall f1-score   support
+              proof   	0.82      	0.86  	0.84	  200000
+         definition   	0.77      	0.91  	0.83	  138626
+             remark   	0.64      	0.70  	0.67	  133607
+              other   	0.68      	0.60  	0.64	  200000
+            example   	0.71      	0.55  	0.62	  49741
+            caption   	0.66      	0.51  	0.58	  270
+            problem   	0.60      	0.49  	0.54	  6018
+              lemma   	0.42      	0.57  	0.49	  200000
+            theorem   	0.45      	0.53  	0.49	  200000
+          algorithm   	0.48      	0.49  	0.48	  1480
+    acknowledgement   	0.39      	0.42  	0.41	  957
+         assumption   	0.51      	0.29  	0.37	  5776
+           notation   	0.45      	0.25  	0.32	  10552
+        proposition   	0.33      	0.31  	0.32	  184968
+          corollary   	0.37      	0.04  	0.07	  87437
+         conjecture   	0.64      	0.01  	0.01	  9082
+               fact   	0.84      	0.01  	0.01	  3811
+               case   	0.01      	0.00  	0.00	  721
+          condition   	0.00	      0.00  	0.00	  798
+          paragraph   	0.00	      0.00  	0.00	  405
+           question   	0.00	      0.00  	0.00	  1667
+             result   	0.00	      0.00  	0.00	  564
+               step   	0.00	      0.00  	0.00	  1535
+  avg / total          0.57        0.58      0.56   1438015
+```
+
+13. v2 data, BiLSTM(128), Dense(4, softmax), adam, 1m max -- NO OTHER
+```
+             precision    recall  f1-score   support
+
+          0       0.99      1.00      0.99       957
+          1       0.98      0.98      0.98    200000
+          2       0.97      0.98      0.97    138626
+          3       0.94      0.83      0.88      6018
+
+avg / total       0.98      0.98      0.98    345601
+```
+
+Very promising, attempting a separate run with Other included, but all other named envs excluded.
+
+14.  v2 data, BiLSTM(128), Dense(4, softmax), adam, 1m max -- Only explicit "Other"
+```
+          0       0.69      0.11      0.20       957
+          1       0.89      0.92      0.90    200000
+          2       0.89      0.95      0.92    138626
+          3       0.85      0.78      0.81      6018
+          4       0.89      0.82      0.86    200000
+
+avg / total       0.89      0.89      0.89    545601
+```
+
+Can roughly conclude the "Other" class as such is too polluted with overlapping data... So, don't use it as such! Regenerate dataset where only explicitly *different* fixed classes are used from the rest of the document (e.g. abstract, introduction)
+Then we can use a likelihood threshold to decide instead!!!
+
+15. v2 data, BiLSTM(128), Dense(21, softmax), adam, 1m max -- Drop "other" only
+Promising:
+```
+                  precision    recall  f1-score   support
+acknowledgement   0.97      0.98      0.97       957
+          proof   0.90      0.89      0.89    200000
+     definition   0.84      0.91      0.88    138626
+    proposition   0.76      0.79      0.77    133607
+        example   0.70      0.65      0.67     49741
+        caption   0.74      0.53      0.62       270
+      algorithm   0.59      0.59      0.59      1480
+        problem   0.64      0.53      0.58      6018
+          lemma   0.41      0.67      0.51    200000
+        theorem   0.47      0.48      0.48    200000
+
+    avg / total   0.59      0.59      0.57   1238015
+```
+
+Full:
+```
+             precision    recall  f1-score   support
+
+          0       0.97      0.98      0.97       957
+          1       0.59      0.59      0.59      1480
+          2       0.57      0.34      0.42      5776
+          3       0.74      0.53      0.62       270
+          4       0.35      0.10      0.15       721
+          5       0.00      0.00      0.00       798
+          6       0.49      0.01      0.02      9082
+          7       0.36      0.05      0.09     87437
+          8       0.84      0.91      0.88    138626
+          9       0.70      0.65      0.67     49741
+         10       0.57      0.01      0.01      3811
+         11       0.41      0.67      0.51    200000
+         12       0.45      0.29      0.36     10552
+         13       0.50      0.00      0.00       405
+         14       0.64      0.53      0.58      6018
+         15       0.90      0.89      0.89    200000
+         16       0.34      0.27      0.31    184968
+         17       0.19      0.01      0.01      1667
+         18       0.76      0.79      0.77    133607
+         19       0.00      0.00      0.00       564
+         20       0.56      0.00      0.01      1535
+         21       0.47      0.48      0.48    200000
+
+avg / total       0.59      0.59      0.57   1238015
+```
+
+16. v2 data, BiLSTM(128), Dense(6, softmax), adam, 1m max
+
+With: acknowledgement(0), definition(1), example(2), lemma+theorem+proposition(3), problem(4), proof(5), NO other.
+
+```
+Label summary:  {0: 4786, 1: 693130, 2: 248706, 3: 2924838, 4: 30089, 5: 1000000}
+Saving model to disk : v2_bilstm128_batch256_cat6_gpu 
+
+             precision    recall  f1-score   support
+
+          0       0.98      0.99      0.99       957
+          1       0.93      0.90      0.92    138626
+          2       0.83      0.71      0.76     49741
+          3       0.95      0.98      0.97    584968
+          4       0.84      0.77      0.81      6018
+          5       0.96      0.93      0.94    200000
+
+avg / total       0.94      0.94      0.94    980310
+
+```
+
+17. v3 data, BiLSTM(128)
+

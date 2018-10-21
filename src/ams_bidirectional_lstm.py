@@ -17,7 +17,7 @@ import json
 
 import tensorflow as tf
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, LSTM, Bidirectional
+from keras.layers import Dense, Dropout, CuDNNLSTM, Bidirectional
 from keras import metrics
 from keras import backend as K
 from keras.callbacks import ModelCheckpoint, EarlyStopping
@@ -42,11 +42,10 @@ K.set_session(session)
 # Analyzing the arxiv dataset seems to indicate a maxlen of 960 is needed to fit 99.2% of the data
 #                                               a maxlen of 480 fits 96.03%, and a maxlen of 300 covers 90.0% of paragraphs
 
-setup_labels = 'f1-envs'  # False
+setup_labels = "stricter-envs"  # "no-other"  # 'f1-envs'
 classes_for_label = {
     "no-other": 22,
-    "strict-envs": 11,
-    "stricter-envs": 10,
+    "stricter-envs": 6,
     "f1-envs": 5,
     "definition-binary": 2
 }
@@ -57,7 +56,8 @@ if setup_labels and setup_labels in classes_for_label:
 maxlen = 480
 layer_size = 128  # maxlen // 4
 batch = 256
-model_file = "bilstm%d_batch%d_cat%d_1m" % (layer_size, batch, n_classes)
+model_file = "v2_bilstm%d_batch%d_cat%d_gpu" % (
+    layer_size, batch, n_classes)
 
 print('Loading data...')
 x_train, x_test, y_train, y_test = arxiv.load_data(maxlen=None, start_char=None, num_words=1_000_000,
@@ -76,7 +76,7 @@ print('y_test shape:', y_test.shape)
 
 class_weights = compute_class_weight('balanced', np.unique(y_train), y_train)
 
-embedding_layer = arxiv.build_embedding_layer(maxlen=maxlen)
+embedding_layer = arxiv.build_embedding_layer(maxlen=maxlen, mask_zero=False)
 gc.collect()
 
 print("setting up model layout...")
@@ -87,7 +87,7 @@ model.add(embedding_layer)
 if use_dropout:
     model.add(Dropout(0.2))
 
-model.add(Bidirectional(LSTM(layer_size)))
+model.add(Bidirectional(CuDNNLSTM(layer_size)))
 if use_dropout:
     model.add(Dropout(0.2))
 

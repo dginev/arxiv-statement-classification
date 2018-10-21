@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 import h5py
 
 
-def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,  # _1m
+def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # _1m
               maxlen=None, test_split=0.2, seed=521, shuffle=True,
               start_char=1, oov_char=2, index_from=2, setup_labels=False, full_data=False, max_per_class=5_000, **kwargs):
     """Loads the Reuters newswire classification dataset.
@@ -60,7 +60,7 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,  # _1m
         labels = datafile["y"]
     else:
         with np.load(path) as f:
-            xs, labels = f['x'], f['y']
+            xs, labels = f['x'].tolist(), f['y'].tolist()
 
     # TODO: BAD!!! If we are sampling a small amount from the data, it needs to preserve the distribution.
     #       At least grab a max per category.
@@ -91,51 +91,46 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,  # _1m
                     labels_reduced.append(label)
         xs = np.array(xs_reduced)
         labels = np.array(labels_reduced)
+        xs_reduced = []
+        labels_reduced = []
         gc.collect()
+    gc.collect()
 
     if setup_labels:
-        # strict_dict = {
-        #     "definition": 1,
-        #     "example": 2,
-        #     "notation": 3,
-        #     "problem": 4,
-        #     "proof": 5,
-        #     "proposition": 6,
-        #     "question": 7,
-        #     "remark": 8,
-        #     "theorem": 9,
-        #     "other": 10
-        # }
-        other_label = 13
         if setup_labels == "stricter-envs":
-            print("Reducing to 9 label classes")
             stricter_map = {
-                0: 10,
-                1: 1,
-                2: 6,
-                3: 10,
-                4: 6,
-                5: 6,
-                6: 6,
-                7: 6,
-                8: 1,
-                9: 2,
-                10: 6,
-                11: 10,
-                12: 10,
-                13: 10,
-                14: 10,
-                15: 4,
-                16: 5,
-                17: 6,
-                18: 10,
-                19: 8,
-                20: 8,
-                21: 8,
-                22: 10
+                0: 0,  # acknowledgement
+                8: 1,  # definition
+                9: 2,  # example
+                11: 3,  # lemma + theorem + proposition
+                15: 4,  # problem
+                16: 5,  # proof
+                17: 3,  # lemma + theorem + proposition
+                22: 3,  # lemma + theorem + proposition
             }
-            other_label = 10
-            labels = np.array([int(stricter_map[l]) for l in labels])
+            other_label = len(set(stricter_map.values())) - 1
+            print("Reducing to %d label classes" % (other_label+1))
+
+            iterations = 0
+            xs_reduced = []
+            labels_reduced = []
+            while len(labels) > 0:
+                iterations += 1
+                x = xs.pop()
+                label = labels.pop()
+                if iterations % 1_000_000 == 0:
+                    print("Iterations %d" % iterations)
+                if label in stricter_map:
+                    xs_reduced.append(x)
+                    labels_reduced.append(stricter_map[label])
+                # else:
+                #     xs_reduced.append(x)
+                #     labels_reduced.append(other_label)
+            xs = np.array(xs_reduced)
+            labels = np.array(labels_reduced)
+            xs_reduced = []
+            labels_reduced = []
+            gc.collect()
         elif setup_labels == "f1-envs":
             # (as evaluated on a 2 layer biLSTM(150)+biLSTM(150))
             # Based on experimental f1-score on the full 23 classes where:
@@ -165,52 +160,28 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,  # _1m
             # result: acknowledgement(0), algorithm(1), caption(2), proof(3), definition(4), problem(5), other(6)
             #
             # Fifth attempt, also drop next worst (algorithm, caption):
-            whitelist = {0: 0, 16: 1, 8: 2, 15: 3}
+            whitelist = {0: 0, 16: 1, 8: 2, 15: 3, 13: 4}
             # result: acknowledgement(0), proof(1), definition(2), problem(3), other(4)
-            labels_env = []
-            other_label = len(set(whitelist.values()))
+            other_label = len(set(whitelist.values())) - 1
             print("using f1-based label whitelist of size %d" % (other_label+1))
-            # This is too eager - requires loading xs_env into memory fully, which is impossible for the full data...
+            # This is too eager - requires loading xs_reduced into memory fully, which is impossible for the full data...
             iterations = 0
-            for label in labels:
+            xs_reduced = []
+            labels_reduced = []
+            for (idx, label) in enumerate(labels):
                 iterations += 1
                 if iterations % 1_000_000 == 0:
                     print("Iterations %d" % iterations)
                 if label in whitelist:
-                    labels_env.append(whitelist[label])
-                else:
-                    labels_env.append(other_label)
-            labels = np.array(labels_env)
-
-        elif setup_labels == "strict-envs":
-            strict_envs = {
-                0: 10,
-                1: 1,
-                2: 6,
-                3: 10,
-                4: 6,
-                5: 6,
-                6: 6,
-                7: 6,
-                8: 1,
-                9: 2,
-                10: 6,
-                11: 9,
-                12: 3,
-                13: 10,
-                14: 10,
-                15: 4,
-                16: 5,
-                17: 6,
-                18: 7,
-                19: 8,
-                20: 8,
-                21: 8,
-                22: 9
-            }
-            print("Reducing to 10 label classes")
-            other_label = 10
-            labels = np.array([int(strict_envs[l]) for l in labels])
+                    xs_reduced.append(xs[idx])
+                    labels_reduced.append(whitelist[label])
+                # else:
+                #     labels_reduced.append(other_label)
+            xs = np.array(xs_reduced)
+            labels = np.array(labels_reduced)
+            xs_reduced = []
+            labels_reduced = []
+            gc.collect()
         elif setup_labels == "definition-binary":
             print("Reducing to 2 label classes")
             # 0 = definition, 1 = other, 2 = drop from set
@@ -242,20 +213,22 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,  # _1m
             other_label = 2
             labels = np.array([definition_envs[l] for l in labels])
         # dropping requested categories ("no-*")
-        if setup_labels == "no-other" or setup_labels == "stricter-envs" or setup_labels == "definition-binary":
+        if setup_labels == "no-other" or setup_labels == "definition-binary":
             print("ignoring Other category from dataset")
-            xs_env = []
-            labels_env = []
+            xs_reduced = []
+            labels_reduced = []
             for (idx, label) in enumerate(labels):
                 if label != other_label:
                     if label > other_label:
                         # the labels need to be in a tight integer sequence, for training to work smoothly, so close the gap we open by removing Other
                         label = label-1
-                    xs_env.append(xs[idx])
-                    labels_env.append(label)
-            xs = np.array(xs_env)
-            labels = np.array(labels_env)
-        gc.collect()
+                    xs_reduced.append(xs[idx])
+                    labels_reduced.append(label)
+            xs = np.array(xs_reduced)
+            labels = np.array(labels_reduced)
+            xs_reduced = []
+            labels_reduced = []
+            gc.collect()
 
     if not(full_data) and shuffle:
         print("shuffling data...")
@@ -282,28 +255,28 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,  # _1m
             iterations = 0
             while iterations < xs_len:
                 xs[iterations] = [start_char] + \
-                    [w + index_from for w in xs[iterations]]
+                    [w + index_from if w > 0 else 0
+                     for w in xs[iterations]]
                 iterations += 1
                 if iterations % 1_000_000 == 0:
                     print("Iterations: ", iterations)
-                    gc.collect()
         elif index_from:
             xs_len = len(xs)
             iterations = 0
             while iterations < xs_len:
-                xs[iterations] = [w + index_from for w in xs[iterations]]
+                xs[iterations] = [w + index_from if w > 0 else 0
+                                  for w in xs[iterations]]
                 iterations += 1
                 if iterations % 1_000_000 == 0:
                     print("Iterations: ", iterations)
-                    gc.collect()
-
+        gc.collect()
         if maxlen:
             print("- maxlen %d" % maxlen)
             xs, labels = _remove_long_seq(maxlen, xs, labels)
-
+            gc.collect()
         if not num_words:
             num_words = max([max(x) for x in xs])
-
+        gc.collect()
         print("- oov char")
         # by convention, use 2 as OOV word
         # reserve 'index_from' (=2 by default, as the para index starts at 1) characters:
@@ -318,8 +291,6 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,  # _1m
                 iterations += 1
                 if iterations % 1_000_000 == 0:
                     print("Iterations: ", iterations)
-                    gc.collect()
-
         else:
             xs_len = int(len(xs))
             iterations = 0
@@ -329,14 +300,13 @@ def load_data(path='data/demo_ams.npz', num_words=200_000, skip_top=0,  # _1m
                 iterations += 1
                 if iterations % 1_000_000 == 0:
                     print("Iterations: ", iterations)
-                    gc.collect()
-
+        gc.collect()
         # idx = int(len(xs) * (1 - test_split))
         # at index ", idx, "/", len(xs), '...')
         if maxlen:
             print('Pad sequences (samples x time)')
             xs = sequence.pad_sequences(xs, maxlen=maxlen)
-
+    gc.collect()
     print("performing train/test cutoff")
     return train_test_split(xs, labels, stratify=labels, test_size=test_split)
 
