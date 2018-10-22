@@ -19,8 +19,8 @@ import h5py
 
 # Defaults
 vocab_file = "data/vocab.txt"
-ams_para_model = "/var/local/ams_paragraphs_arxmliv_08_2018.tar"
-destination = "/var/local/full_ams_08_2018"
+ams_para_model = "/var/local/ams_paragraphs_arxmliv_08_2018_v3.tar"
+destination = "/var/local/full_ams_08_2018_v3"
 max_words = 480
 
 argcount = len(sys.argv[1:])
@@ -33,8 +33,14 @@ if argcount > 0:
             if argcount > 3:
                 max_words = int(sys.argv[4])
 
-labels = sorted(["acknowledgement", "algorithm", "assumption", "caption", "case", "condition", "conjecture", "corollary", "definition", "example",
-                 "fact", "lemma", "notation", "other", "paragraph", "problem", "proof", "proposition", "question", "remark", "result", "step", "theorem"])
+# v1, v2
+# labels = sorted(["acknowledgement", "algorithm", "assumption", "caption", "case", "condition", "conjecture", "corollary", "definition", "example",
+#                  "fact", "lemma", "notation", "other", "paragraph", "problem", "proof", "proposition", "question", "remark", "result", "step", "theorem"])
+# v3
+labels = sorted(["abstract", "acknowledgement", "algorithm", "assumption", "caption", "case", "conclusion", "condition", "conjecture",
+                 "corollary", "definition", "discussion", "example",
+                 "fact", "introduction", "lemma", "method", "notation", "other", "paragraph", "problem", "proof", "proposition", "question", "relatedwork", "remark", "result", "step", "theorem"])
+
 vocab_lines = open(vocab_file, "r").readlines()
 w_index = {}
 for v_index, line in enumerate(vocab_lines):
@@ -72,6 +78,8 @@ while True:
 
     w_val = []
     label = tarinfo.name.split('/')[0]
+    if label == "results":
+        label = "result"
     label_idx = label_lookup[label]
     label_para_count[label] += 1
 

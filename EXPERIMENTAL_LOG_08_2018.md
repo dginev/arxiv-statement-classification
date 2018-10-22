@@ -848,5 +848,102 @@ avg / total       0.95      0.95      0.95    980310
 ```
 
 
-17. v3 data, BiLSTM(128)
+17. v3 data,  BiLSTM(128) + BiLSTM(64) + LSTM(64) + Dense(28, softmax), adam, 5k max class
+```
+                  precision    recall  f1-score   support
 
+acknowledgement       0.99      0.99      0.99      1000
+      algorithm       0.85      0.79      0.82      1000
+        caption       0.75      0.89      0.82       270
+    relatedwork       0.83      0.82      0.82       370
+   introduction       0.80      0.71      0.75      1000
+           case       0.63      0.78      0.70       733
+       question       0.54      0.81      0.65      1000
+     definition       0.54      0.70      0.61      1000
+          proof       0.51      0.75      0.61      1000
+        example       0.61      0.56      0.58      1000
+     conclusion       0.51      0.64      0.57       395
+        problem       0.75      0.46      0.57      1000
+       abstract       0.64      0.47      0.54       312
+         remark       0.54      0.51      0.52      1000
+     assumption       0.51      0.52      0.51      1000
+     conjecture       0.34      0.42      0.38      1000
+         method       0.48      0.28      0.36        74
+         result       0.37      0.33      0.35       809
+           step       0.41      0.30      0.35      1000
+           fact       0.31      0.38      0.34      1000
+      paragraph       0.48      0.25      0.33       434
+          lemma       0.22      0.40      0.28      1000
+        theorem       0.28      0.26      0.27      1000
+      condition       0.33      0.23      0.27       811
+     discussion       0.32      0.23      0.27       179
+       notation       0.47      0.13      0.21      1000
+      corollary       0.22      0.16      0.18      1000
+    proposition       0.19      0.16      0.17      1000
+
+    avg / total       0.51      0.50      0.49     22387
+```
+
+18. v3 data,  BiLSTM(128) + BiLSTM(64) + LSTM(64) + Dense(13, softmax), adam, 5k max class
+
+A first reduced experiment, informs that additional classes can be dropped (postponed until further linguistic rationale for regrouping becomes apparent)
+
+```
+                      precision    recall  f1-score   support
+
+acknowledgement       0.99      1.00      1.00      1000
+        theorem       0.83      0.91      0.87      4000
+        problem       0.90      0.83      0.86      1000
+   related work       0.77      0.87      0.82       370
+          proof       0.72      0.84      0.78      1000
+   introduction       0.79      0.76      0.77      1000
+     definition       0.80      0.73      0.76      1000
+        example       0.67      0.67      0.67      1000
+        --- cut-off ---
+     conclusion       0.49      0.56      0.52       395
+       abstract       0.48      0.49      0.48       312
+     discussion       0.38      0.17      0.24       179
+         method       0.00      0.00      0.00        74
+         result       0.44      0.30      0.35       809
+
+    avg / total       0.76      0.78      0.77     12139
+```
+
+19. v3 data,  BiLSTM(128) + BiLSTM(64) + LSTM(64) + Dense(8, softmax), adam, 5k max class
+
+Final classes from v3 data, next up 1m training
+
+```
+                      precision    recall  f1-score   support
+
+acknowledgement       1.00      0.92      0.96      1000
+        theorem       0.87      0.96      0.91      4001
+     definition       0.80      0.77      0.78      1000
+        example       0.72      0.69      0.70      1000
+   introduction       0.85      0.86      0.86      1000
+        problem       0.94      0.80      0.86      1000
+          proof       0.87      0.77      0.81      1000
+   related work       0.86      0.88      0.87       370
+
+    avg / total       0.87      0.87      0.86     10371
+```
+
+20.  v3 data,  BiLSTM(128) + BiLSTM(64) + LSTM(64) + Dense(8, softmax), adam, 900k max class
+```
+                  precision    recall  f1-score   support
+acknowledgement       1.00      1.00      1.00      8999
+    proposition       0.97      0.98      0.97    628860
+          proof       0.95      0.94      0.94    180000
+     definition       0.92      0.93      0.92    141483
+        problem       0.83      0.83      0.83      6168
+   introduction       0.86      0.77      0.81      3016
+        example       0.83      0.75      0.79     51573
+   related work       0.74      0.77      0.75       370
+
+    avg / total       0.95      0.95      0.95   1020469
+```
+
+21.  v3 data,  BiLSTM(128) + Dense(8, softmax), adam, 900k max class
+```
+[ongoing]
+```

@@ -17,9 +17,10 @@ from sklearn.model_selection import train_test_split
 import h5py
 
 
-def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # _1m
+def load_data(path='data/demo_ams_1m_v3.npz', num_words=200_000, skip_top=0,  # _1m
               maxlen=None, test_split=0.2, seed=521, shuffle=True,
-              start_char=1, oov_char=2, index_from=2, setup_labels=False, full_data=False, max_per_class=5_000, **kwargs):
+              start_char=1, oov_char=2, index_from=2, setup_labels=False, full_data=False, max_per_class=5_000,
+              other_label=18, **kwargs):
     """Loads the Reuters newswire classification dataset.
 
     # Arguments
@@ -72,7 +73,6 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
 
     # A "Zero Rule" classifier with this restriction and f1-env will have accuracy of 0.62
     #   total paragraphs would be 14,740,530, with Other numbered at 9,137,806
-
     if max_per_class != None:
         # Also drops empty rows, and rows with NaN, just in case
         print("reducing data to ", max_per_class, " per class...")
@@ -93,11 +93,54 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
         labels = labels_reduced
         xs_reduced = []
         labels_reduced = []
-        gc.collect()
+
     gc.collect()
 
     if setup_labels:
-        if setup_labels == "stricter-envs":
+        if setup_labels == "stricter-envs-v3":
+            stricter_map = {
+                # 0: 0,  # abstract
+                1: 0,  # acknowledgement
+                # 6: 2,  # conclusion
+                9: 1,  # lemma + theorem + corollary + proposition
+                10: 2,  # definition
+                # 11: 5,  # discussion
+                12: 3,  # example
+                14: 4,  # introduction
+                15: 1,  # lemma + theorem + corollary + proposition
+                # 16: 8,  # method
+                20: 5,  # problem
+                21: 6,  # proof
+                22: 1,  # lemma + theorem + corollary + proposition
+                24: 7,  # related work
+                # 26: 12,  # result
+                28: 1,  # lemma + theorem + corollary + proposition
+            }
+            other_label = len(set(stricter_map.values()))
+            print("Reducing to %d label classes" % (other_label))
+
+            iterations = 0
+            xs_reduced = []
+            labels_reduced = []
+            while len(labels) > 0:
+                iterations += 1
+                x = xs.pop()
+                label = labels.pop()
+                if iterations % 1_000_000 == 0:
+                    print("Iterations %d" % iterations)
+                if label in stricter_map:
+                    xs_reduced.append(x)
+                    labels_reduced.append(stricter_map[label])
+                # else:
+                #     xs_reduced.append(x)
+                #     labels_reduced.append(other_label)
+            print("Assigning to arrays")
+            xs = np.array(xs_reduced)
+            xs_reduced = []
+            labels = np.array(labels_reduced)
+            labels_reduced = []
+            gc.collect()
+        elif setup_labels == "stricter-envs":
             stricter_map = {
                 0: 0,  # acknowledgement
                 8: 1,  # definition
@@ -130,7 +173,6 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
             labels = np.array(labels_reduced)
             xs_reduced = []
             labels_reduced = []
-            gc.collect()
         elif setup_labels == "f1-envs":
             # (as evaluated on a 2 layer biLSTM(150)+biLSTM(150))
             # Based on experimental f1-score on the full 23 classes where:
@@ -181,7 +223,6 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
             labels = np.array(labels_reduced)
             xs_reduced = []
             labels_reduced = []
-            gc.collect()
         elif setup_labels == "definition-binary":
             print("Reducing to 2 label classes")
             # 0 = definition, 1 = other, 2 = drop from set
@@ -213,7 +254,7 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
             other_label = 2
             labels = np.array([definition_envs[l] for l in labels])
         # dropping requested categories ("no-*")
-        if setup_labels == "no-other" or setup_labels == "definition-binary":
+        if setup_labels == "no-other" or setup_labels == "no-other-v3" or setup_labels == "definition-binary":
             print("ignoring Other category from dataset")
             xs_reduced = []
             labels_reduced = []
@@ -228,7 +269,8 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
             labels = np.array(labels_reduced)
             xs_reduced = []
             labels_reduced = []
-            gc.collect()
+        print("Garbage collect...")
+        gc.collect()
 
     if not(full_data) and shuffle:
         print("shuffling data...")
@@ -241,7 +283,7 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
         gc.collect()
 
     # Might as well report a summary of what is in the labels...
-    label_summary = dict.fromkeys(range(0, 23), 0)
+    label_summary = dict.fromkeys(range(0, 28), 0)
     for label in labels:
         label_summary[label] += 1
     label_summary = {k: v for k, v in label_summary.items() if v > 0}
@@ -249,8 +291,8 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
 
     if not(full_data):
         print("preparing sets...")
-        print("- start char and index_from")
         if start_char is not None:
+            print("- start char and index_from")
             xs_len = len(xs)
             iterations = 0
             while iterations < xs_len:
@@ -261,6 +303,7 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
                 if iterations % 1_000_000 == 0:
                     print("Iterations: ", iterations)
         elif index_from:
+            print("- index_from")
             xs_len = len(xs)
             iterations = 0
             while iterations < xs_len:
@@ -270,6 +313,7 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
                 if iterations % 1_000_000 == 0:
                     print("Iterations: ", iterations)
         gc.collect()
+
         if maxlen:
             print("- maxlen %d" % maxlen)
             xs, labels = _remove_long_seq(maxlen, xs, labels)
@@ -277,30 +321,31 @@ def load_data(path='data/demo_ams_1m_v2.npz', num_words=200_000, skip_top=0,  # 
         if not num_words:
             num_words = max([max(x) for x in xs])
         gc.collect()
-        print("- oov char")
-        # by convention, use 2 as OOV word
-        # reserve 'index_from' (=2 by default, as the para index starts at 1) characters:
-        # 0 (padding), 1 (start), 2 (OOV)
-        # 3 is the most common word ('the')
-        if oov_char is not None:
-            xs_len = int(len(xs))
-            iterations = 0
-            while iterations < xs_len:
-                xs[iterations] = [w if skip_top <= w <
-                                  num_words else oov_char for w in xs[iterations]]
-                iterations += 1
-                if iterations % 1_000_000 == 0:
-                    print("Iterations: ", iterations)
-        else:
-            xs_len = int(len(xs))
-            iterations = 0
-            while iterations < xs_len:
-                xs[iterations] = [w for w in xs[iterations]
-                                  if skip_top <= w < num_words]
-                iterations += 1
-                if iterations % 1_000_000 == 0:
-                    print("Iterations: ", iterations)
-        gc.collect()
+        # Assume preprocessed outside of loading, save time.
+        # print("- oov char")
+        # # by convention, use 2 as OOV word
+        # # reserve 'index_from' (=2 by default, as the para index starts at 1) characters:
+        # # 0 (padding), 1 (start), 2 (OOV)
+        # # 3 is the most common word ('the')
+        # if oov_char is not None:
+        #     xs_len = int(len(xs))
+        #     iterations = 0
+        #     while iterations < xs_len:
+        #         xs[iterations] = [w if skip_top <= w <
+        #                           num_words else oov_char for w in xs[iterations]]
+        #         iterations += 1
+        #         if iterations % 1_000_000 == 0:
+        #             print("Iterations: ", iterations)
+        # else:
+        #     xs_len = int(len(xs))
+        #     iterations = 0
+        #     while iterations < xs_len:
+        #         xs[iterations] = [w for w in xs[iterations]
+        #                           if skip_top <= w < num_words]
+        #         iterations += 1
+        #         if iterations % 1_000_000 == 0:
+        #             print("Iterations: ", iterations)
+        # gc.collect()
         # idx = int(len(xs) * (1 - test_split))
         # at index ", idx, "/", len(xs), '...')
         if maxlen:

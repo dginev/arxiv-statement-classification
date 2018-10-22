@@ -42,26 +42,28 @@ K.set_session(session)
 # Analyzing the arxiv dataset seems to indicate a maxlen of 960 is needed to fit 99.2% of the data
 #                                               a maxlen of 480 fits 96.03%, and a maxlen of 300 covers 90.0% of paragraphs
 
-setup_labels = "stricter-envs"  # "no-other"  # 'f1-envs'
+setup_labels = "stricter-envs-v3"  # "stricter-envs"  # "no-other"  # 'f1-envs'
 classes_for_label = {
     "no-other": 22,
     "stricter-envs": 6,
+    "stricter-envs-v3": 8,
     "f1-envs": 5,
-    "definition-binary": 2
+    "definition-binary": 2,
+    "no-other-v3": 28,
 }
-n_classes = 23  # ams classes/labels (0-22)
+n_classes = 29  # ams classes/labels (0-28)
 if setup_labels and setup_labels in classes_for_label:
     n_classes = classes_for_label[setup_labels]
 
 maxlen = 480
 layer_size = 128  # maxlen // 4
 batch = 256
-model_file = "v2_bilstm%d_batch%d_cat%d_gpu" % (
+model_file = "v3_bilstm%d_batch%d_cat%d_gpu" % (
     layer_size, batch, n_classes)
 
 print('Loading data...')
 x_train, x_test, y_train, y_test = arxiv.load_data(maxlen=None, start_char=None, num_words=1_000_000,
-                                                   shuffle=False, setup_labels=setup_labels, full_data=False, max_per_class=None)
+                                                   shuffle=False, setup_labels=setup_labels, full_data=False, max_per_class=900_000)
 print(len(x_train), 'train sequences')
 print(len(x_test), 'test sequences')
 gc.collect()
@@ -121,7 +123,7 @@ checkpoint = ModelCheckpoint(model_file+"-checkpoint.h5",
 
 earlystop = EarlyStopping(monitor='val_weighted_sparse_categorical_accuracy',
                           min_delta=0.001,
-                          patience=2,
+                          patience=4,
                           verbose=0, mode='auto')
 
 # Perform training

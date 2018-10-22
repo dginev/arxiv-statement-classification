@@ -25,10 +25,10 @@ def saveCompressed(fh, **namedict):
 
 
 source = "data/full_ams.hdf5"
-destination = "data/demo_ams_v2.npz"
+destination = "data/demo_ams_1m_v3.npz"
 
 # A "Zero Rule" classifier with this restriction will have accuracy of 0.077725805
-max_per_class = 5_000
+max_per_class = 1_000_000
 # max 2 million does not fit memory, but is of shape:
 # Selected:  10734819
 #  By label:
@@ -49,6 +49,11 @@ max_per_class = 5_000
 # By label:
 #  {13: 1000000, 8: 693130, 11: 1000000, 7: 437185, 22: 1000000, 16: 1000000, 17: 924838, 19: 668034, 12: 52760, 9: 248706, 6: 45409, 1: 7398, 0: 4786, 10: 19056, 15: 30089, 2: 28879, 20: 2820, 21: 7673, 18: 8337, 5: 3989, 3: 1352, 4: 3607, 14: 2026}
 
+# max 1m on v3 data (first paragraph only selected for envs):
+# Seen:  13000000
+# Selected:  7320707
+# By label:
+# {18: 1000000, 10: 707413, 15: 1000000, 9: 444298, 28: 1000000, 21: 1000000, 22: 940472, 25: 685091, 17: 53697, 12: 257863, 8: 46154, 14: 15081, 1: 44998, 2: 7542, 13: 19374, 20: 30840, 3: 29654, 6: 1973, 26: 4044, 27: 7818, 23: 8477, 0: 1558, 7: 4054, 11: 896, 24: 1851, 4: 1353, 5: 3664, 16: 372, 19: 2170}
 
 print("reducing data to ", max_per_class, " per class...")
 total_count = 0
