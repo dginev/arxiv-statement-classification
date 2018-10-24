@@ -152,7 +152,7 @@ def load_data(path='data/demo_ams_1m_v3.npz', num_words=200_000, skip_top=0,  # 
                 22: 3,  # lemma + theorem + proposition
             }
             other_label = len(set(stricter_map.values())) - 1
-            print("Reducing to %d label classes" % (other_label+1))
+            print("Reducing to %d label classes" % (other_label + 1))
 
             iterations = 0
             xs_reduced = []
@@ -205,7 +205,8 @@ def load_data(path='data/demo_ams_1m_v3.npz', num_words=200_000, skip_top=0,  # 
             whitelist = {0: 0, 16: 1, 8: 2, 15: 3, 13: 4}
             # result: acknowledgement(0), proof(1), definition(2), problem(3), other(4)
             other_label = len(set(whitelist.values())) - 1
-            print("using f1-based label whitelist of size %d" % (other_label+1))
+            print("using f1-based label whitelist of size %d" %
+                  (other_label + 1))
             # This is too eager - requires loading xs_reduced into memory fully, which is impossible for the full data...
             iterations = 0
             xs_reduced = []
@@ -262,7 +263,7 @@ def load_data(path='data/demo_ams_1m_v3.npz', num_words=200_000, skip_top=0,  # 
                 if label != other_label:
                     if label > other_label:
                         # the labels need to be in a tight integer sequence, for training to work smoothly, so close the gap we open by removing Other
-                        label = label-1
+                        label = label - 1
                     xs_reduced.append(xs[idx])
                     labels_reduced.append(label)
             xs = np.array(xs_reduced)
@@ -399,7 +400,7 @@ def build_embedding_layer(with_input=False, maxlen=256, index_from=2, vocab_dim=
     print("known dictionary items: ", n_symbols)
     embedding_weights = np.zeros((n_symbols, vocab_dim))
     for word, index in index_dict.items():
-        embedding_weights[index+index_from, :] = word_vectors[word]
+        embedding_weights[index + index_from, :] = word_vectors[word]
 
     if not with_input:
         # define inputs here

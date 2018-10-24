@@ -943,7 +943,46 @@ acknowledgement       1.00      1.00      1.00      8999
     avg / total       0.95      0.95      0.95   1020469
 ```
 
+Note: adding a second BiLSTM(128) layer leads to the exact same f1 score.
+
 21.  v3 data,  BiLSTM(128) + Dense(8, softmax), adam, 900k max class
+```
+                   precision    recall  f1-score   support
+acknowledgement       1.00      1.00      1.00      8999
+    proposition       0.96      0.98      0.97    628860
+          proof       0.93      0.94      0.93    180000
+     definition       0.92      0.91      0.91    141483
+        problem       0.87      0.74      0.80      6168
+   introduction       0.79      0.77      0.78      3016
+   related work       0.77      0.80      0.78       370
+        example       0.87      0.66      0.75     51573
+
+avg / total       0.94      0.94      0.94   1020469
+
+```
+
+22. v3 data, BLSTM(128) + BDLSTM(64) + LSTM(64) + Dense(8, softmax), adam, 5k max class
+
+```
+              precision    recall  f1-score   support
+
+           0       1.00      0.99      1.00      1000
+           1       0.88      0.96      0.92      4001
+           2       0.88      0.76      0.82      1000
+           3       0.75      0.70      0.72      1000
+           4       0.88      0.88      0.88      1000
+           5       0.88      0.87      0.87      1000
+           6       0.88      0.77      0.82      1000
+           7       0.89      0.92      0.90       370
+
+   micro avg       0.88      0.88      0.88     10371
+   macro avg       0.88      0.86      0.87     10371
+weighted avg       0.88      0.88      0.88     10371
+```
+
+23. v3 data, BLSTM(16) + BDLSTM(32) + BDLSTM(64) + BDLSTM(128) + LSTM(64) + Dense(8, softmax), adam, 1m max class
+5k performance same as 22, f1 0.88
+
 ```
 [ongoing]
 ```
