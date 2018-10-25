@@ -97,6 +97,75 @@ def load_data(path='data/demo_ams_1m_v3.npz', num_words=200_000, skip_top=0,  # 
     gc.collect()
 
     if setup_labels:
+        if setup_labels == "confusion-envs-v3":
+            confusion_map = {
+                # 0: drop,  # abstract, unclear separation with introduction?
+                1: 0,  # acknowledgement
+                # 2: drop, # algorithm, bad data
+                3: 1,  # assumption + condition, 0.77 assumption but "condition" seems hard to separate
+                # 4: drop # caption, bad data
+                5: 2,  # case + proof + step
+                6: 3,  # conclusion + discussion + remark
+                7: 1,  # condition+assumption
+                8: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
+                9: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
+                10: 5,  # definition + notation
+                11: 3,  # conclusion + discussion + remark
+                12: 6,  # example
+                13: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
+                14: 7,  # introduction
+                15: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
+                # 16: drop,  # method, too correlated
+                17: 5,  # definition + notation
+                # 18: drop, other class
+                # 19: drop, paragraph seems badly separable
+                20: 8,  # problem + question
+                21: 2,  # case + proof + step
+                22: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
+                23: 8,  # problem + question
+                24: 9,  # related work
+                25: 3,  # conclusion + discussion + remark
+                # 26: drop,  # result, too correlated
+                27: 2,  # case + proof + step
+                28: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
+            }
+            # Classes:
+            # 0 - acknowledgement
+            # 1 - assumption = assumption + condition
+            # 2 - proof = case + proof + step
+            # 3 - remark = conclusion + discussion + remark
+            # 4 - proposition = lemma + theorem + corollary + proposition + conjecture + fact
+            # 5 - definition = definition + notation
+            # 6 - example
+            # 7 - introduction
+            # 8 - problem = problem + question
+            # 9 - related work
+            # drop - abstract + algorithm + caption + method + other + paragraph + result
+
+            other_label = len(set(confusion_map.values()))
+            print("Reducing to %d label classes" % (other_label))
+
+            iterations = 0
+            xs_reduced = []
+            labels_reduced = []
+            while len(labels) > 0:
+                iterations += 1
+                x = xs.pop()
+                label = labels.pop()
+                if iterations % 1_000_000 == 0:
+                    print("Iterations %d" % iterations)
+                if label in confusion_map:
+                    xs_reduced.append(x)
+                    labels_reduced.append(confusion_map[label])
+                # else:
+                #     xs_reduced.append(x)
+                #     labels_reduced.append(other_label)
+            print("Assigning to arrays")
+            xs = np.array(xs_reduced)
+            xs_reduced = []
+            labels = np.array(labels_reduced)
+            labels_reduced = []
+            gc.collect()
         if setup_labels == "stricter-envs-v3":
             stricter_map = {
                 # 0: 0,  # abstract
