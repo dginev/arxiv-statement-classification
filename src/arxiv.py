@@ -102,34 +102,34 @@ def load_data(path='data/demo_ams_1m_v3.npz', num_words=200_000, skip_top=0,  # 
                 # 0: drop,  # abstract, unclear separation with introduction?
                 1: 0,  # acknowledgement
                 # 2: drop, # algorithm, bad data
-                3: 1,  # assumption + condition, 0.77 assumption but "condition" seems hard to separate
+                # 3: drop, # POST2: drop, too correlated with proposition  # POST: assumption, # 0.77 assumption but "condition" seems hard to separate
                 # 4: drop # caption, bad data
-                5: 2,  # case + proof + step
-                6: 3,  # conclusion + discussion + remark
-                7: 1,  # condition+assumption
-                8: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
-                9: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
-                10: 5,  # definition + notation
-                11: 3,  # conclusion + discussion + remark
-                12: 6,  # example
-                13: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
-                14: 7,  # introduction
-                15: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
+                5: 1,  # case + proof + step
+                # 6: drop, # POST2: drop, too correlated with proof, proposition, example  # conclusion + discussion + remark
+                # 7: drop,  # POST: condition
+                8: 2,  # lemma + theorem + corollary + proposition + conjecture + fact
+                9: 2,  # lemma + theorem + corollary + proposition + conjecture + fact
+                10: 3,  # POST: definition
+                # 11: drop, #POST2  # conclusion + discussion + remark
+                12: 4,  # example
+                13: 2,  # lemma + theorem + corollary + proposition + conjecture + fact
+                14: 5,  # introduction
+                15: 2,  # lemma + theorem + corollary + proposition + conjecture + fact
                 # 16: drop,  # method, too correlated
-                17: 5,  # definition + notation
+                # 17: drop,  #POST: notation is too noisy / corellated with proof, drop
                 # 18: drop, other class
                 # 19: drop, paragraph seems badly separable
-                20: 8,  # problem + question
-                21: 2,  # case + proof + step
-                22: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
-                23: 8,  # problem + question
-                24: 9,  # related work
-                25: 3,  # conclusion + discussion + remark
+                20: 6,  # POST: problem
+                21: 1,  # case + proof + step
+                22: 2,  # lemma + theorem + corollary + proposition + conjecture + fact
+                # 23: drop, POST: question too correlated with definition? # problem + question
+                24: 7,  # related work
+                # 25: drop, # POST 2  # conclusion + discussion + remark
                 # 26: drop,  # result, too correlated
-                27: 2,  # case + proof + step
-                28: 4,  # lemma + theorem + corollary + proposition + conjecture + fact
+                27: 1,  # case + proof + step
+                28: 2,  # lemma + theorem + corollary + proposition + conjecture + fact
             }
-            # Classes:
+            # Classes v1:
             # 0 - acknowledgement
             # 1 - assumption = assumption + condition
             # 2 - proof = case + proof + step
@@ -141,6 +141,16 @@ def load_data(path='data/demo_ams_1m_v3.npz', num_words=200_000, skip_top=0,  # 
             # 8 - problem = problem + question
             # 9 - related work
             # drop - abstract + algorithm + caption + method + other + paragraph + result
+
+            # classes v3:
+            # 0 - acknowledgement
+            # 1 - proof = case + proof + step
+            # 2 - proposition = lemma + theorem + corollary + proposition + conjecture + fact
+            # 3 - definition
+            # 4 - example
+            # 5 - introduction
+            # 6 - problem
+            # 7 - related work
 
             other_label = len(set(confusion_map.values()))
             print("Reducing to %d label classes" % (other_label))
