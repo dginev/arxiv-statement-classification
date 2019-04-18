@@ -28,14 +28,20 @@ for v_index, line in enumerate(vocab_lines):
     # offset by 1 as the array starts with 0
     w_index[line.split()[0]] = v_index + 1
 
-w_json = json.dumps(w_index)
+w_json = json.dumps(w_index, indent=2)
 open(word_index_destination, "w").write(w_json)
 
-labels = sorted(["acknowledgement", "algorithm", "assumption", "caption", "case", "condition", "conjecture", "corollary", "definition", "example",
-                 "fact", "lemma", "notation", "other", "paragraph", "problem", "proof", "proposition", "question", "remark", "result", "step", "theorem"])
+# TODO: These are also hardcoded in ams_tar_to_hdf5,
+# I need to move them out in a contant json asset
+labels = sorted(["abstract", "acknowledgement", "algorithm", "assumption", "caption",
+                 "case", "conclusion", "condition", "conjecture", "corollary",
+                 "definition", "discussion", "example", "fact", "introduction",
+                 "lemma", "method", "notation", "other", "paragraph",
+                 "problem", "proof", "proposition", "question", "relatedwork",
+                 "remark", "result", "step", "theorem"])
 label_index = {}
 for l_ind, label in enumerate(labels):
     label_index[label] = l_ind
 
-l_json = json.dumps(label_index)
+l_json = json.dumps(label_index, indent=2)
 open(label_index_destination, "w").write(l_json)
