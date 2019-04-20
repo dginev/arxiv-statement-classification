@@ -9,7 +9,6 @@ Execute from the root project directory as:
 import json
 import sys
 
-
 vocab_file = "data/vocab.txt"
 word_index_destination = "./data/ams_word_index.json"
 label_index_destination = "./data/ams_label_index.json"

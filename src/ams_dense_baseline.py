@@ -1,7 +1,4 @@
-'''Trains a Bidirectional LSTM on the arXiv AMS environment classification task.
-
-adapted from the official Keras examples:
-https://github.com/keras-team/keras/blob/master/examples/imdb_bidirectional_lstm.py
+'''Trains a  simple MPL baseline model for AMS classification
 '''
 
 # of all the weird dependency hells...
@@ -25,44 +22,31 @@ from sklearn.metrics import classification_report
 
 import arxiv
 
-# Use full CPU capacity
+# Try to use full CPU capacity, and a 1/3 of the GPU memory.
+# the CPU options don't seem to be working however, at least I only see a single thread used... missing something here.
+# optimized for my 1080 Ti and Threadripper 1950x
 gpu_options = tf.GPUOptions(
     per_process_gpu_memory_fraction=0.333, allow_growth=True)
 config = tf.ConfigProto(intra_op_parallelism_threads=16,
                         inter_op_parallelism_threads=16, allow_soft_placement=True, gpu_options=gpu_options)
-
 session = tf.Session(config=config)
 K.set_session(session)
 
-# Analyzing the arxiv dataset seems to indicate a maxlen of 300 is needed to fit 99.2% of the data
+# Analyzing the arxiv dataset seems to indicate a maxlen of 300 words is needed to fit 99.2% of the paragraphs
 #                                               a maxlen of 150 fits 94.03%, and a maxlen of 600 covers 99.91% of paragraphs
-maxlen = 300  # sentences of 25 words each? Also compare "15", 50" vs "250", "500" word window extremes
-# what is the optimum here? the average arXiv document seems to have 110 paragraphs ?!
+# what is the optimum here? also, the average arXiv document seems to have 110 paragraphs ?!
+# maxlen = 300
+# update: we limit the maxlen when we generate the dataset, to 480, see `max_words` in ams_tar_to_hdf5.py
 
-# Results on arxiv 08.2018 demo_ams.npz
-#                      precision    recall  f1-score   support
-# 23 classes: avg / total   0.34      0.33      0.31     91727 (50k)
-#                           0.23      0.22      0.22     15065 (5k)
-#
-# 9 classes:                0.67      0.71      0.67     91727 (50k)
-#                           0.59      0.65      0.59     15065 (5k)
+setup_labels = "confusion-envs-v3"
+n_classes = 8
 
-setup_labels = 'f1-envs'  # False
-classes_for_label = {
-    "no-other": 22,
-    "strict-envs": 11,
-    "stricter-envs": 10,
-    "f1-envs": 9,
-    "definition-binary": 2
-}
-n_classes = 23  # ams classes/labels (0-22)
-if setup_labels and setup_labels in classes_for_label:
-    n_classes = classes_for_label[setup_labels]
-
-print('Loading data...')
-(x_train, y_train), (x_test, y_test) = arxiv.load_data(
-    maxlen=maxlen, setup_labels=setup_labels, full_data=False,  # max_per_class=50_000
+# We can't enable shuffling unless we restrict the max_per_class to a much smaller number.
+# Shuffling should essentially be a minor issue given the amount of data presented to the model
+x_train, x_test, y_train, y_test = arxiv.load_data(
+    maxlen=None, setup_labels=setup_labels, start_char=None, full_data=False, shuffle=False, num_words=1_000_000, max_per_class=900_000
 )
+maxlen = 480  # don't pass into laod_data for now, speedier to assume it's preset to 480
 print(len(x_train), 'train sequences')
 print(len(x_test), 'test sequences')
 gc.collect()
@@ -83,24 +67,27 @@ embedding_layer = arxiv.build_embedding_layer(
     maxlen=maxlen, mask_zero=False)
 gc.collect()
 
-print("setting up model layout...")
+use_dropout = True  # disable if running on small dataset demo
+print("-- setting up model layout...")
 model = Sequential()
 model.add(embedding_layer)
-model.add(Dropout(0.5))
+if use_dropout:
+    model.add(Dropout(0.5))
 model.add(Flatten())
 model.add(Dense(maxlen, activation='relu'))
 model.add(Dense(maxlen, activation='relu'))
-model.add(Dropout(0.2))
+if use_dropout:
+    model.add(Dropout(0.2))
 model.add(Dense(n_classes, activation='softmax'))
 # try using different optimizers and different optimizer configs?
 model.compile(loss='sparse_categorical_crossentropy',
               optimizer="adam",
               metrics=[metrics.sparse_categorical_accuracy])
 # summarize the model
-print('Training model...')
+print('-- training model...')
 
 model.fit(x_train, y_train,
-          batch_size=128,  # 32, 64, 128
+          batch_size=128,
           epochs=10,
           validation_split=0.2)
 
@@ -108,14 +95,24 @@ print('Model summary:')
 print(model.summary())
 
 # evaluate the model
-print("Evaluating model on test data...")
+print("-- evaluating model on test data...")
 scores = model.evaluate(x_test, y_test, verbose=0)
 print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
 # serialize model to JSON
-print("Saving model to disk...")
-model.save("model-300-baseline-f1-9-classes-big.h5")
+print("-- saving model to disk...")
+# e.g. rename from -big to -demo, for small data
+model.save("model-mlp-baseline-big.h5")
 
 print("Per-class test measures:")
 y_pred = model.predict_classes(x_test, verbose=1)
 print(classification_report(y_test, y_pred))
+
+# -- scratch --
+# First results on arxiv 08.2018 demo_ams.npz (ams paragraphs v2)
+#                      precision    recall  f1-score   support
+# 23 classes: avg / total   0.34      0.33      0.31     91727 (50k)
+#                           0.23      0.22      0.22     15065 (5k)
+#
+# 9 classes:                0.67      0.71      0.67     91727 (50k)
+#                           0.59      0.65      0.59     15065 (5k)
