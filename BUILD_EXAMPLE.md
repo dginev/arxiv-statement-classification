@@ -163,5 +163,56 @@
     3314783/3314783 [==============================] - 994s 300us/step - loss: 0.4962 - sparse_categorical_accuracy: 0.8294 - val_loss: 0.4617 - val_sparse_categorical_accuracy: 0.8371
     Epoch 5/10
     3314783/3314783 [==============================] - 1055s 318us/step - loss: 0.4878 - sparse_categorical_accuracy: 0.8327 - val_loss: 0.4479 - val_sparse_categorical_accuracy: 0.8461
-    ...
+    Epoch 6/10
+    3314783/3314783 [==============================] - 994s 300us/step - loss: 0.4798 - sparse_categorical_accuracy: 0.8358 - val_loss: 0.4604 - val_sparse_categorical_accuracy: 0.8423
+    Epoch 7/10
+    3314783/3314783 [==============================] - 993s 300us/step - loss: 0.4733 - sparse_categorical_accuracy: 0.8385 - val_loss: 0.4537 - val_sparse_categorical_accuracy: 0.8408
+    Epoch 8/10
+    3314783/3314783 [==============================] - 992s 299us/step - loss: 0.4678 - sparse_categorical_accuracy: 0.8403 - val_loss: 0.4481 - val_sparse_categorical_accuracy: 0.8454
+    Epoch 9/10
+    3314783/3314783 [==============================] - 992s 299us/step - loss: 0.4623 - sparse_categorical_accuracy: 0.8426 - val_loss: 0.4428 - val_sparse_categorical_accuracy: 0.8520
+    Epoch 10/10
+    3314783/3314783 [==============================] - 992s 299us/step - loss: 0.4573 - sparse_categorical_accuracy: 0.8446 - val_loss: 0.4393 - val_sparse_categorical_accuracy: 0.8504
+    Model summary:
+    _________________________________________________________________
+    Layer (type)                 Output Shape              Param #   
+    =================================================================
+    embedding_1 (Embedding)      (None, 480, 300)          300089400 
+    _________________________________________________________________
+    dropout_1 (Dropout)          (None, 480, 300)          0         
+    _________________________________________________________________
+    flatten_1 (Flatten)          (None, 144000)            0         
+    _________________________________________________________________
+    dense_1 (Dense)              (None, 480)               69120480  
+    _________________________________________________________________
+    dense_2 (Dense)              (None, 480)               230880    
+    _________________________________________________________________
+    dropout_2 (Dropout)          (None, 480)               0         
+    _________________________________________________________________
+    dense_3 (Dense)              (None, 8)                 3848      
+    =================================================================
+    Total params: 369,444,608
+    Trainable params: 69,355,208
+    Non-trainable params: 300,089,400
+    _________________________________________________________________
+    None
+    -- evaluating model on test data...
+    sparse_categorical_accuracy: 85.01%
+    -- saving model to disk...
+    Per-class test measures:
+    1035870/1035870 [==============================] - 72s 70us/step
+                precision    recall  f1-score   support
+
+            0       0.99      1.00      0.99      8999
+            1       0.86      0.82      0.84    182297
+            2       0.85      0.96      0.90    641966
+            3       0.84      0.56      0.67    141479
+            4       0.72      0.45      0.55     51574
+            5       0.89      0.48      0.62      3016
+            6       0.86      0.39      0.53      6169
+            7       0.64      0.65      0.65       370
+
+    micro avg       0.85      0.85      0.85   1035870
+    macro avg       0.83      0.66      0.72   1035870
+    weighted avg       0.85      0.85      0.84   1035870
     ```
