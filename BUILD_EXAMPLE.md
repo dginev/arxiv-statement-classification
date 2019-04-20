@@ -162,5 +162,6 @@
     Epoch 4/10
     3314783/3314783 [==============================] - 994s 300us/step - loss: 0.4962 - sparse_categorical_accuracy: 0.8294 - val_loss: 0.4617 - val_sparse_categorical_accuracy: 0.8371
     Epoch 5/10
-    
+    3314783/3314783 [==============================] - 1055s 318us/step - loss: 0.4878 - sparse_categorical_accuracy: 0.8327 - val_loss: 0.4479 - val_sparse_categorical_accuracy: 0.8461
+    ...
     ```
