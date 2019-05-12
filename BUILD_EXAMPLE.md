@@ -11,13 +11,13 @@
 2. Clone a fresh repository:
     ```
     cd $HOME
-    git clone git@github.com:dginev/arxiv-ams-env-bilstm.git 
+    git clone git@github.com:dginev/arxiv-ams-env-bilstm.git
     cd arxiv-ams-env-bilstm
     ```
 
 3. Set up symbolic links to dataset resources:
     ```
-    ln -s /data/datasets/embeddings-arXMLiv-08-2018/glove.arxmliv.11B.300d.txt data/glove.model.txt 
+    ln -s /data/datasets/embeddings-arXMLiv-08-2018/glove.arxmliv.11B.300d.txt data/glove.model.txt
     ln -s /data/datasets/embeddings-arXMLiv-08-2018/vocab.arxmliv.txt data/vocab.txt
     ```
 
@@ -70,7 +70,7 @@
 
 5. Create index assets for the current vocabulary
     ```
-    python3 src/gen_indices.py data/vocab.txt 
+    python3 src/gen_indices.py data/vocab.txt
     ```
 
     Creates `data/ams_word_index.json` and `data/ams_label_index.json` to make the index info quickly available to preprocessing and training.
@@ -86,7 +86,7 @@
     ```
 
     Let's also extract a more meaty dataset of 1,000,000 paragraphs per class (on which the live model was trained).
-    As this is done with eager loading all data in RAM before serializing (i.e. very naively), you will need a very significant amount of available run 
+    As this is done with eager loading all data in RAM before serializing (i.e. very naively), you will need a very significant amount of available run
     to extract 1 million examples per class. In my case it's a little over 40 GB (forty) of RAM.
 
     ```
@@ -99,7 +99,7 @@
     Final counts:
     Seen:  13000000
     Selected:  7320668
-    By label: 
+    By label:
     {18: 1000000, 10: 707396, 15: 1000000, 9: 444300, 28: 1000000, 25: 685064, 21: 1000000, 22: 940455, 12: 257868, 1: 44997, 17: 53698, 14: 15081, 20: 30843, 13: 19374, 8: 46157, 2: 7544, 3: 29661, 6: 1973, 26: 4044, 27: 7818, 23: 8477, 0: 1558, 7: 4054, 11: 896, 24: 1851, 4: 1353, 5: 3664, 16: 372, 19: 2170}
     ---
     saving demo data at data/sandbox_ams_1m.npz ...
@@ -114,10 +114,10 @@
 
     ```
     CUDA_VISIBLE_DEVICES=0 python3 src/ams_dense_baseline.py
-    ``` 
+    ```
 
     At time of writing, defaults to a 1m word dictionary, with 900k max paragraphs per class, as in the main model setup.
-    Creates `model-mlp-baseline-big.h5`, 
+    Creates `model-mlp-baseline-big.h5`,
 
     Log example (note: the max-per-class is taken from the full 28 classes, before they are mapped down to the confusion classes):
     ```
@@ -149,7 +149,7 @@
     y_test shape: (1035870,)
     -- loading word embeddings, this may take a little while...
     -- known dictionary items:  1000298
-    -- embeddings 
+    -- embeddings
     -- setting up model layout...
     -- training model...
     Train on 3314783 samples, validate on 828696 samples
@@ -175,21 +175,21 @@
     3314783/3314783 [==============================] - 992s 299us/step - loss: 0.4573 - sparse_categorical_accuracy: 0.8446 - val_loss: 0.4393 - val_sparse_categorical_accuracy: 0.8504
     Model summary:
     _________________________________________________________________
-    Layer (type)                 Output Shape              Param #   
+    Layer (type)                 Output Shape              Param #
     =================================================================
-    embedding_1 (Embedding)      (None, 480, 300)          300089400 
+    embedding_1 (Embedding)      (None, 480, 300)          300089400
     _________________________________________________________________
-    dropout_1 (Dropout)          (None, 480, 300)          0         
+    dropout_1 (Dropout)          (None, 480, 300)          0
     _________________________________________________________________
-    flatten_1 (Flatten)          (None, 144000)            0         
+    flatten_1 (Flatten)          (None, 144000)            0
     _________________________________________________________________
-    dense_1 (Dense)              (None, 480)               69120480  
+    dense_1 (Dense)              (None, 480)               69120480
     _________________________________________________________________
-    dense_2 (Dense)              (None, 480)               230880    
+    dense_2 (Dense)              (None, 480)               230880
     _________________________________________________________________
-    dropout_2 (Dropout)          (None, 480)               0         
+    dropout_2 (Dropout)          (None, 480)               0
     _________________________________________________________________
-    dense_3 (Dense)              (None, 8)                 3848      
+    dense_3 (Dense)              (None, 8)                 3848
     =================================================================
     Total params: 369,444,608
     Trainable params: 69,355,208
@@ -216,3 +216,5 @@
     macro avg       0.83      0.66      0.72   1035870
     weighted avg       0.85      0.85      0.84   1035870
     ```
+
+    For a BiLSTM example using a cap of 1 million paragraphs for each of the final 8 classes, see [BiLSTM for Paragraph Classification.ipynb](https://github.com/dginev/arxiv-ams-paragraph-classification/blob/master/BiLSTM%20for%20Paragraph%20Classification.ipynb), which can be executed with all prerequisites met at this point of the example.
