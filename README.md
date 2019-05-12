@@ -1,6 +1,3 @@
-# arxiv-ams-env-bilstm
-A bidirectional LSTM paragraph classifier for AMS environments
-
 **WARNING:** This is an unpublished experiment, and all claims and data are tentative until noted otherwise.
 
 **NO, Really:** The code is essentially a "scratchpad" of scripts, doing a variety of preprocessing and model training. Expect it to bite, until refactored.
