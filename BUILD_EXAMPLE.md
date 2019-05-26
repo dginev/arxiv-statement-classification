@@ -21,14 +21,15 @@
     ln -s /data/datasets/embeddings-arXMLiv-08-2018/vocab.arxmliv.txt data/vocab.txt
     ```
 
-4. Extract a vector representation of the paragraphs, and store it in hdf5
+4. Extract a numeric representation of the paragraphs, and store it in hdf5
+
     ```
     python3 src/ams_tar_to_hdf5.py data/vocab.txt /var/local/ams_paragraphs_arxmliv_08_2018.tar /var/local/ams_paragraphs_08_2018.hdf5
     ```
-
       Runs in ~1GB of RAM, for ~25 minutes. Creates `ams_paragraphs_08_2018.hdf5` which is `38GB` in size.
-      Example result report:
+      The resulting data resides in 4 separate datasets inside the HDF5 file: `x_train`, `y_train`, `x_test` and `y_test` (split as 80/20 on each label class)
 
+      Example result report:
     ```
     found 1030771 of abstract
     found 162229 of acknowledgement
@@ -95,37 +96,20 @@
     ln -s /var/local/ams_paragraphs_08_2018.hdf5 data/full_ams.hdf5
     ```
 
-7.  Here's how we can extract a demo dataset of 1,000 paragraphs per class, ready to be eagerly loaded by Keras as an `.npz` file
+
+7. Pre-analysis.
+   7.0. We will need a jupyer notebook for the following experiments
     ```
-    python3 src/sandbox_data_for_keras.py 1000 data/full_ams.hdf5 data/sandbox_ams_1k.npz
+    CUDA_VISIBLE_DEVICES=0 jupyter notebook
     ```
 
-    Let's also extract a more meaty dataset of 1,000,000 paragraphs per class (on which the live model was trained).
-    As this is done with eager loading all data in RAM before serializing (i.e. very naively), you will need a very significant amount of available run
-    to extract 1 million examples per class. In my case it's a little over 40 GB (forty) of RAM.
+   7.1. `Pre-analysis BiLSTM Confusion Matrix.ipynb`: Run a "confusion matrix analysis" BiLSTM test, to obtain an empirical overview of the data. Some classes are potentially conceptually and linguistically near, (e.g. "observation" and "discussion"),
+   and we do not have apriori understanding of the separability of what one would consider "highly specialized" classes. Meanwhile, the task aims to model highly separable classes, so that e.g. "acknowledgement" and "definition" are never confused,
+   as well as "proof" vs "conjecture", and so on. As this is the first time this task has been presented, we do our best to obtain a reasonable setup.
 
-    ```
-    python3 src/sandbox_data_for_keras.py 1000000 data/full_ams.hdf5 data/sandbox_ams_1m.npz
-    ```
-
-    Result:
-    ```
-    checked 11997921 : selected 7320000 paragraphs.
-    Final counts:
-    Seen:  13000000
-    Selected:  7320668
-    By label:
-    {18: 1000000, 10: 707396, 15: 1000000, 9: 444300, 28: 1000000, 25: 685064, 21: 1000000, 22: 940455, 12: 257868, 1: 44997, 17: 53698, 14: 15081, 20: 30843, 13: 19374, 8: 46157, 2: 7544, 3: 29661, 6: 1973, 26: 4044, 27: 7818, 23: 8477, 0: 1558, 7: 4054, 11: 896, 24: 1851, 4: 1353, 5: 3664, 16: 372, 19: 2170}
-    ---
-    saving demo data at data/sandbox_ams_1m.npz ...
-    ```
-
-    An unfortunate reality is that since the rarest classes only have less than 1,000 entries (method being the  rarest at 372), even the small demo target has to iterate through the entire hdf5 file in hope of finding more data entries for the rare label classes. Hence even the demo target requires 30 min of runtime, while almost no RAM is used.
 
 8. We can now compute a baseline model using a simple Dense keras Multilayer Perceptron (MLP).
-
-    Warning: Loading the data will eagerly allocate ~60 GB of RAM for the 1m per class case. Additionally, it may take 20-30 minutes of
-    data setup before the neural network training is reached, so *always* ensure you test on a small baseline case first.
+   We will use data generators and work with the full 10.5 million paragraphs from the start, to get as close to possible to optimal baseline performance.
 
     ```
     CUDA_VISIBLE_DEVICES=0 python3 src/ams_dense_baseline.py

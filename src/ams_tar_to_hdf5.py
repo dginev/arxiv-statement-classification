@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-"""creates an .npz dataset from the llamapun-induced directory structure of an "AMS environment" dataset
+"""creates an HDF5 dataset from the Tar archive of "mathematical statement" paragraphs.
 
-Example: python src/ams_to_npz.py /path/to/vocab.txt /path/to/ams-paragraphs /path/to/destination.npz
+on arXiv 08.2018, this script completes in ~30 minutes and requires ~1 GB of RAM
 
-on arXiv 08.2018, this script completes in ~1 hour and requires ~32 GB of RAM for the current (naive) in-memory setup
+See BUILD EXAMPLE for details.
 
-Problem: naively loading the .npz result with np.load(path) allocates ~34 GB of RAM as well, and takes 3 minutes.
-         You would need a much more careful setup for machines with lesser RAM capacity.
 """
 
 import os
@@ -181,6 +179,28 @@ while True:
             print("---")
 # Done!
 tar.close()
+
+# Add final data to HDF5, and resize down to real size
+last_batch_train_len = len(y_train_labels)
+x_train[-chunk_size:(-chunk_size+last_batch_train_len)] = x_train_paragraphs[:]
+x_train.resize(x_train.shape[0]-chunk_size+last_batch_train_len, axis=0)
+x_train_paragraphs = []
+print("   final x_train size: ", x_train.shape)
+y_train[-chunk_size:(-chunk_size+last_batch_train_len)] = y_train_labels[:]
+y_train.resize(y_train.shape[0]-chunk_size+last_batch_train_len, axis=0)
+y_train_labels = []
+print("   final y_train size: ", y_train.shape)
+
+last_batch_test_len = len(y_test_labels)
+x_test[-chunk_size:(-chunk_size+last_batch_test_len)] = x_test_paragraphs[:]
+x_test.resize(x_test.shape[0]-chunk_size+last_batch_test_len, axis=0)
+x_test_paragraphs = []
+print("   final x_test size: ", x_test.shape)
+y_test[-chunk_size:(-chunk_size+last_batch_test_len)] = y_test_labels[:]
+y_test.resize(y_test.shape[0]-chunk_size+last_batch_test_len, axis=0)
+y_test_labels = []
+print("   final y_test size: ", y_test.shape)
+
 
 # Report on the completed run:
 for label in labels:
