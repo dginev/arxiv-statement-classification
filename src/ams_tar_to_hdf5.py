@@ -39,12 +39,18 @@ if argcount > 0:
 # v3 -- 29 classes whitelisted by llamapun, alphabetically sorted.
 #          each label is recorded via its numeric index in this array,
 #          so this source file is normative for mapping the final model back into label names.
-labels = sorted(["abstract", "acknowledgement", "algorithm", "assumption", "caption",
-                 "case", "conclusion", "condition", "conjecture", "corollary",
-                 "definition", "discussion", "example", "fact", "introduction",
-                 "lemma", "method", "notation", "other", "paragraph",
-                 "problem", "proof", "proposition", "question", "relatedwork",
-                 "remark", "result", "step", "theorem"])
+# v4 -- 49 classes whitelisted by llamapun, alphabetically sorted.
+labels = sorted([
+    "abstract", "acknowledgement", "affirmation", "answer", "assumption",
+    "bound", "case", "claim", "comment", "conclusion",
+    "condition", "conjecture", "constraint", "convention", "corollary",
+    "criterion", "definition", "demonstration", "discussion", "example",
+    "exercise", "expansion", "expectation", "experiment", "explanation",
+    "fact", "hint", "introduction", "issue", "keywords",
+    "lemma", "method", "notation", "note", "notice",
+    "observation", "overview", "principle", "problem", "proof",
+    "proposition", "question", "remark", "result", "rule",
+    "solution", "step", "summary", "theorem"])
 
 # w_index is an in-memory loaded vocabulary, produced alongside the GloVe embeddings of a corpus
 #    which we use to map the plaintext words into their respective autoincremented *vocabulary index*
@@ -55,9 +61,12 @@ for v_index, line in enumerate(vocab_lines):
     w_index[line.split()[0]] = v_index + 1
 
 # As is customary for python ML data, we use x_ to denote the data, and y_ to denote the labels.
-x_paragraphs = []
-y_labels = []
+x_train_paragraphs = []
+y_train_labels = []
+x_test_paragraphs = []
+y_test_labels = []
 
+word_length_report = {}
 label_lookup = {}
 label_paragraph_count = {}
 for label_index, label in enumerate(labels):
@@ -65,19 +74,30 @@ for label_index, label in enumerate(labels):
     label_paragraph_count[label] = 0
 
 paragraph_index = 0
+train_index = 0
+test_index = 0
 
 tar = tarfile.open(ams_paragraph_model, "r")
 # Need: Big chunks for quick continuous access, but still be able to fit the process in average RAM
-chunk_size = 1_000_000  # tune this by hand for smaller data.
+chunk_size = 100_000  # tune this by hand for smaller data.
 
 fp = h5py.File(destination, "w")
-x_dset = fp.create_dataset("x", (chunk_size, max_words), maxshape=(
+x_train = fp.create_dataset("x_train", (chunk_size, max_words), maxshape=(
     None, max_words), chunks=(chunk_size, max_words), dtype="int")
-print("x_dset chunks: ", x_dset.chunks)
+print("x_train chunks: ", x_train.chunks)
 
-y_dset = fp.create_dataset("y", (chunk_size,), maxshape=(
+y_train = fp.create_dataset("y_train", (chunk_size,), maxshape=(
     None,), chunks=(chunk_size,), dtype="int")
-print("y_dset chunks: ", y_dset.chunks)
+print("y_train chunks: ", y_train.chunks)
+
+x_test = fp.create_dataset("x_test", (chunk_size, max_words), maxshape=(
+    None, max_words), chunks=(chunk_size, max_words), dtype="int")
+print("x_test chunks: ", x_test.chunks)
+
+y_test = fp.create_dataset("y_test", (chunk_size,), maxshape=(
+    None,), chunks=(chunk_size,), dtype="int")
+print("y_test chunks: ", y_test.chunks)
+
 
 # Iterate over the tar file and stream the vocabulary indexes into the .hdf5 target (fp)
 while True:
@@ -87,10 +107,7 @@ while True:
 
     w_val = []
     label = tarinfo.name.split('/')[0]
-    if label == "results":
-        label = "result"
-    label_index = label_lookup[label]
-    label_paragraph_count[label] += 1
+    label_int_value = label_lookup[label]
 
     words = tar.extractfile(tarinfo).read().decode('utf-8').split()
     for word in words:
@@ -104,15 +121,54 @@ while True:
             # print("unk: ", word)
     # Only record sentences with at least one word
     # (this was added after testing and realizing there are sentences with all words unknown to w_index)
-    if len(w_val) > 0:
+    paragraph_length = len(w_val)
+    if paragraph_length > 0:
         paragraph_index += 1
+        label_counter = label_paragraph_count[label] + 1
+        label_paragraph_count[label] = label_counter
+
+        if paragraph_length in word_length_report:
+            word_length_report[paragraph_length] += 1
+        else:
+            word_length_report[paragraph_length] = 1
+
+        # Cap at max_words
         w_val = np.array(w_val[:max_words])
         # Pad the paragraph upto the expected max_words size, using 0 as the padding value
         npad = max_words-len(w_val)
         if npad > 0:
             w_val = np.pad(w_val, (0, npad), mode='constant')
-        x_paragraphs.append(w_val)
-        y_labels.append(label_index)
+        if label_counter % 5 == 0:  # 20% go in the test suite
+            x_test_paragraphs.append(w_val)
+            y_test_labels.append(label_int_value)
+            test_index += 1
+            if test_index % chunk_size == 0:
+                x_test[-chunk_size:] = x_test_paragraphs[:]
+                x_test.resize(x_test.shape[0]+chunk_size, axis=0)
+                x_test_paragraphs = []
+                print("-- writing hdf5 chunk")
+                print("   new x_test size: ", x_test.shape)
+                y_test[-chunk_size:] = y_test_labels[:]
+                y_test.resize(y_test.shape[0]+chunk_size, axis=0)
+                y_test_labels = []
+                print("   new y_test size: ", y_test.shape)
+        else:
+            x_train_paragraphs.append(w_val)
+            y_train_labels.append(label_int_value)
+            # Flush output hdf5 to disk every `chunk_size` paragraphs,
+            # and resize to be able to write more entries
+            train_index += 1
+            if train_index % chunk_size == 0:
+                x_train[-chunk_size:] = x_train_paragraphs[:]
+                x_train.resize(x_train.shape[0]+chunk_size, axis=0)
+                x_train_paragraphs = []
+                print("-- writing hdf5 chunk")
+                print("   new x_train size: ", x_train.shape)
+                y_train[-chunk_size:] = y_train_labels[:]
+                y_train.resize(y_train.shape[0]+chunk_size, axis=0)
+                y_train_labels = []
+                print("   new y_train size: ", y_train.shape)
+
         # Technical: drop the tar memoization every 10_000 paragraphs/files in the tar, to remain relatively low in RAM use
         if paragraph_index % 10_000 == 0:
             tar.members = []
@@ -123,18 +179,6 @@ while True:
                 print("-- found %d of %s" %
                       (label_paragraph_count[label], label))
             print("---")
-            # Flush output hdf5 to disk every `chunk_size` paragraphs,
-            # and resize to be able to write more entries
-            if paragraph_index % chunk_size == 0:
-                x_dset[-chunk_size:] = x_paragraphs[:]
-                x_dset.resize(x_dset.shape[0]+chunk_size, axis=0)
-                x_paragraphs = []
-                print("-- writing hdf5 chunk")
-                print("   new x size: ", x_dset.shape)
-                y_dset[-chunk_size:] = y_labels[:]
-                y_dset.resize(y_dset.shape[0]+chunk_size, axis=0)
-                y_labels = []
-                print("   new y size: ", y_dset.shape)
 # Done!
 tar.close()
 
@@ -144,3 +188,6 @@ for label in labels:
 
 print("---")
 print("total collected paragraphs: ", paragraph_index)
+print("---")
+# print(" word length report")
+# print(word_length_report)

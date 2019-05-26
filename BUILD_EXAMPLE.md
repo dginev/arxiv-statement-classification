@@ -6,7 +6,7 @@
     cargo run --release --example corpus_ams_para_model /data/datasets/dataset-arXMLiv-08-2018/ /var/local/ams_paragraphs_arxmliv_08_2018.tar
     ```
 
-    Which results in a `26 GB` tar file.
+    Which results in a `22 GB` tar file.
 
 2. Clone a fresh repository:
     ```
