@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""extract a demo dataset for ams classification (50,000 max per class)
+"""extract a demo dataset for ams classification
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -45,8 +45,8 @@ xs_reduced = []
 labels_reduced = []
 
 datafile = h5py.File(source, 'r')
-fx = datafile["x"]
-fy = datafile["y"]
+fx = datafile["x_train"]
+fy = datafile["y_train"]
 
 for xs, label in zip(fx, fy):
     total_count += 1
