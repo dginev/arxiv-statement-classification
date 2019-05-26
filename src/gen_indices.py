@@ -32,12 +32,19 @@ open(word_index_destination, "w").write(w_json)
 
 # TODO: These are also hardcoded in ams_tar_to_hdf5,
 # I need to move them out in a contant json asset
-labels = sorted(["abstract", "acknowledgement", "algorithm", "assumption", "caption",
-                 "case", "conclusion", "condition", "conjecture", "corollary",
-                 "definition", "discussion", "example", "fact", "introduction",
-                 "lemma", "method", "notation", "other", "paragraph",
-                 "problem", "proof", "proposition", "question", "relatedwork",
-                 "remark", "result", "step", "theorem"])
+# v4 -- 49 classes whitelisted by llamapun, alphabetically sorted.
+labels = sorted([
+    "abstract", "acknowledgement", "affirmation", "answer", "assumption",
+    "bound", "case", "claim", "comment", "conclusion",
+    "condition", "conjecture", "constraint", "convention", "corollary",
+    "criterion", "definition", "demonstration", "discussion", "example",
+    "exercise", "expansion", "expectation", "experiment", "explanation",
+    "fact", "hint", "introduction", "issue", "keywords",
+    "lemma", "method", "notation", "note", "notice",
+    "observation", "overview", "principle", "problem", "proof",
+    "proposition", "question", "remark", "result", "rule",
+    "solution", "step", "summary", "theorem"])
+
 label_index = {}
 for l_ind, label in enumerate(labels):
     label_index[label] = l_ind
