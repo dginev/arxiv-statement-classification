@@ -26,46 +26,61 @@
     python3 src/ams_tar_to_hdf5.py data/vocab.txt /var/local/ams_paragraphs_arxmliv_08_2018.tar /var/local/ams_paragraphs_08_2018.hdf5
     ```
 
-      Runs in ~4GB of RAM, for ~25 minutes. Creates `ams_paragraphs_08_2018.hdf5` which is `44GB` in size.
+      Runs in ~1GB of RAM, for ~25 minutes. Creates `ams_paragraphs_08_2018.hdf5` which is `38GB` in size.
       Example result report:
 
     ```
-    x_dset chunks:  (1000000, 480)
-    y_dset chunks:  (1000000,)
-
-    [skip]
-
-    found 1563 of abstract
-    found 45111 of acknowledgement
-    found 7570 of algorithm
-    found 29754 of assumption
-    found 1364 of caption
-    found 3669 of case
-    found 1984 of conclusion
-    found 4063 of condition
-    found 46227 of conjecture
-    found 445190 of corollary
-    found 709297 of definition
-    found 899 of discussion
-    found 258619 of example
-    found 19461 of fact
-    found 15105 of introduction
-    found 1350134 of lemma
-    found 374 of method
-    found 53824 of notation
-    found 3809424 of other
-    found 2170 of paragraph
-    found 30959 of problem
-    found 2220427 of proof
-    found 942429 of proposition
-    found 8489 of question
-    found 1857 of relatedwork
-    found 686715 of remark
-    found 4049 of result
-    found 7862 of step
-    found 1322007 of theorem
+    found 1030771 of abstract
+    found 162229 of acknowledgement
+    found 36 of affirmation
+    found 40 of answer
+    found 29576 of assumption
+    found 47 of bound
+    found 3256 of case
+    found 89736 of claim
+    found 325 of comment
+    found 284584 of conclusion
+    found 3949 of condition
+    found 44892 of conjecture
+    found 752 of constraint
+    found 2175 of convention
+    found 436765 of corollary
+    found 236 of criterion
+    found 686714 of definition
+    found 23043 of demonstration
+    found 116650 of discussion
+    found 295149 of example
+    found 404 of exercise
+    found 5 of expansion
+    found 13 of expectation
+    found 154 of experiment
+    found 16 of explanation
+    found 17737 of fact
+    found 9 of hint
+    found 688530 of introduction
+    found 41 of issue
+    found 1565 of keywords
+    found 1320642 of lemma
+    found 50969 of method
+    found 16610 of notation
+    found 4462 of note
+    found 4 of notice
+    found 18776 of observation
+    found 11279 of overview
+    found 236 of principle
+    found 30367 of problem
+    found 2125747 of proof
+    found 829066 of proposition
+    found 27240 of question
+    found 639037 of remark
+    found 239929 of result
+    found 774 of rule
+    found 163 of solution
+    found 6910 of step
+    found 117 of summary
+    found 1287644 of theorem
     ---
-    total collected paragraphs:  12029317
+    total collected paragraphs:  10529371
     ```
 
 5. Create index assets for the current vocabulary
