@@ -108,6 +108,12 @@
    as well as "proof" vs "conjecture", and so on. As this is the first time this task has been presented, we do our best to obtain a reasonable setup.
 
 
+    7.2. We reach a "confusion-free" task setup of 12 classes (including 24 of the original classes), with 25 discarded classes.
+
+        - To obtain a dataset for the simplified classification setup (as `data/confusion_free_ams.hdf5`), we run:
+        ```
+            python3 src/gen_confusion_free_dataset.py
+        ```
 8. We can now compute a baseline model using a simple Dense keras Multilayer Perceptron (MLP).
    We will use data generators and work with the full 10.5 million paragraphs from the start, to get as close to possible to optimal baseline performance.
 
