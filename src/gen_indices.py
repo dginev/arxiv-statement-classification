@@ -42,7 +42,7 @@ labels = sorted([
     "fact", "hint", "introduction", "issue", "keywords",
     "lemma", "method", "notation", "note", "notice",
     "observation", "overview", "principle", "problem", "proof",
-    "proposition", "question", "remark", "result", "rule",
+    "proposition", "question", "relatedwork", "remark", "result", "rule",
     "solution", "step", "summary", "theorem"])
 
 label_index = {}

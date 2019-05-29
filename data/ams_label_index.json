@@ -41,11 +41,12 @@
   "proof": 39,
   "proposition": 40,
   "question": 41,
-  "remark": 42,
-  "result": 43,
-  "rule": 44,
-  "solution": 45,
-  "step": 46,
-  "summary": 47,
-  "theorem": 48
+  "relatedwork": 42,
+  "remark": 43,
+  "result": 44,
+  "rule": 45,
+  "solution": 46,
+  "step": 47,
+  "summary": 48,
+  "theorem": 49
 }
