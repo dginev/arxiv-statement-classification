@@ -23,11 +23,11 @@ original_class_names = [
     'expectation', 'experiment', 'explanation', 'fact', 'hint', 'introduction',
     'issue', 'keywords', 'lemma', 'method', 'notation', 'note', 'notice',
     'observation', 'overview', 'principle', 'problem', 'proof', 'proposition',
-    'question', 'remark', 'result', 'rule', 'solution', 'step', 'summary', 'theorem']
+    'question', 'relatedwork', 'remark', 'result', 'rule', 'solution', 'step', 'summary', 'theorem']
 
 reduced_class_names = [
     'abstract', 'acknowledgement', 'conclusion', 'definition', 'example',
-    'introduction', 'keywords', 'proof', 'proposition', 'problem', 'remark', 'result']
+    'introduction', 'keywords', 'proof', 'proposition', 'problem', 'relatedwork', 'remark', 'result']
 
 confusion_map_names = {
     "abstract": "abstract",
@@ -51,6 +51,7 @@ confusion_map_names = {
     "corollary": "proposition",
     "question": "problem",
     "problem": "problem",
+    "relatedwork": "relatedwork",
     "remark": "remark",
     "note": "remark",
     "result": "result"

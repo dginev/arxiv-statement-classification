@@ -47,7 +47,7 @@ labels = sorted([
     "fact", "hint", "introduction", "issue", "keywords",
     "lemma", "method", "notation", "note", "notice",
     "observation", "overview", "principle", "problem", "proof",
-    "proposition", "question", "remark", "result", "rule",
+    "proposition", "question", "relatedwork", "remark", "result", "rule",
     "solution", "step", "summary", "theorem"])
 
 # w_index is an in-memory loaded vocabulary, produced alongside the GloVe embeddings of a corpus
