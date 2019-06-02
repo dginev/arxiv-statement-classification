@@ -7,6 +7,9 @@ See BUILD EXAMPLE for details.
 
 """
 
+# No math run:
+# python3 src/ams_tar_to_hdf5.py ../GloVe/vocab_complete_nomath.txt / var/local/ams_paragraphs_arxmliv_08_2018_nomath.tar / var/local/ams_paragraphs_08_2018_nomath.hdf5
+
 import os
 import numpy as np
 import zipfile
@@ -209,5 +212,5 @@ for label in labels:
 print("---")
 print("total collected paragraphs: ", paragraph_index)
 print("---")
-# print(" word length report")
-# print(word_length_report)
+print(" word length report")
+print(word_length_report)
