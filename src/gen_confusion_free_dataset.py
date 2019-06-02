@@ -11,6 +11,8 @@ import gc
 import json
 import h5py
 import time
+import sys
+
 
 # We run `Pre-analysis BiLSTM Confusion Matrix.ipynb`
 
@@ -63,12 +65,21 @@ for k, v in confusion_map_names.items():
 
 # Ok, now that we have the confusion map. we need to remap and rewrite the HDF5 data.
 # We do this once here so that we can quickly train models afterwards, rather than having to recompute the map each time
-data_hf = h5py.File("data/full_ams.hdf5", 'r')
+input_filename = "data/full_ams.hdf5"
+output_filename = "data/confusion_free_ams.hdf5"
+
+argcount = len(sys.argv[1:])
+if argcount > 0:
+    input_filename = sys.argv[1]
+    if argcount > 1:
+        output_filename = sys.argv[2]
+
+data_hf = h5py.File(input_filename, 'r')
 
 # Need: Big chunks for quick continuous access, but still be able to fit the process in average RAM
 chunk_size = 100_000  # tune this by hand for smaller data.
 max_words = 480  # explicit, to fail loudly if something changes
-new_fp = h5py.File("data/confusion_free_ams.hdf5", "w")
+new_fp = h5py.File(output_filename, "w")
 
 
 total_train_size = 0
