@@ -1,4 +1,12 @@
-## Log from my personal build on a fresh checkout (in case instructions are unclear/incomplete)
+## Detailed step-through starting with a fresh repository checkout
+
+0. Data prerequisites
+
+I am assuming the following paths:
+
+- `/data/datasets/embeddings-arXMLiv-08-2018` contains the [arXMLiv 08.2018 embeddings](https://sigmathling.kwarc.info/resources/arxmliv-embeddings-082018/)
+- `/data/datasets/dataset-arXMLiv-08-2018/` contains the [arXMLiv 08.2018 dataset](https://sigmathling.kwarc.info/resources/arxmliv-dataset-082018/)
+- `/path/to/llamapun` contains a local checkout of the [llamapun repository](https://github.com/kwarc/llamapun)
 
 1. First, prepare the paragraph dataset via [llamapun](https://github.com/KWARC/llamapun):
     ```
