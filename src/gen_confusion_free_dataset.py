@@ -65,8 +65,8 @@ for k, v in confusion_map_names.items():
 
 # Ok, now that we have the confusion map. we need to remap and rewrite the HDF5 data.
 # We do this once here so that we can quickly train models afterwards, rather than having to recompute the map each time
-input_filename = "data/full_ams.hdf5"
-output_filename = "data/confusion_free_ams.hdf5"
+input_filename = "data/statement_paragraphs.hdf5"
+output_filename = "data/confusion_free_statements.hdf5"
 
 argcount = len(sys.argv[1:])
 if argcount > 0:

@@ -10,8 +10,8 @@ import json
 import sys
 
 vocab_file = "data/vocab.txt"
-word_index_destination = "./data/ams_word_index.json"
-label_index_destination = "./data/ams_label_index.json"
+word_index_destination = "./data/word_index.json"
+label_index_destination = "./data/label_index.json"
 
 argcount = len(sys.argv[1:])
 if argcount > 0:
@@ -30,7 +30,7 @@ for v_index, line in enumerate(vocab_lines):
 w_json = json.dumps(w_index, indent=2)
 open(word_index_destination, "w").write(w_json)
 
-# TODO: These are also hardcoded in ams_tar_to_hdf5,
+# TODO: These are also hardcoded in tar_to_hdf5,
 # I need to move them out in a contant json asset
 # v4 -- 49 classes whitelisted by llamapun, alphabetically sorted.
 labels = sorted([
