@@ -1,11 +1,12 @@
 **Paper Submission Pending** (link coming soon)
 
-# Upcoming Timeline
- - [ ] Finalize and publish paragraph dataset over arXMLiv 08.2018 (under the [SigMathLing](https://sigmathling.kwarc.info/resources/) umbrella).
- - [x] Finalize and stabilize benchmark models (in this repository)
- - [ ] Write up and submit a description of the effort.
-
 For a high level overview of the task setup, see [Experiment Setup](doc/Experimental_Setup.md).
+
+# Upcoming Timeline
+ - [x] Finalize and stabilize benchmark models (in this repository)
+ - [x] Finalize and deploy showcase ([repository](https://github.com/dginev/showcase-statement-classification) and [live demo](https://corpora.mathweb.org/classify_paragraph))
+ - [ ] Write up and submit a description of the effort.
+ - [ ] Finalize and publish paragraph dataset over arXMLiv 08.2018 (under the [SigMathLing](https://sigmathling.kwarc.info/resources/) umbrella).
 
 # Build Steps
 
