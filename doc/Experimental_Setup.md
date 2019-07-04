@@ -1,22 +1,21 @@
 # Summary
 - Take AMS-labeled subset of arXMLiv dataset
+  - Extend with "fixed meaning" heading labels if desired (introduction, related work, conclusion,...)
 - Suvey environments, arriving at a shortlist classification targets
 - Use the first paragraph under each heading, with the environment name as a classification label
-  - Extend with "fixed meaning" heading labels if desired (introduction, related work, conclusion,...)
 - Split data into 80/20 training/testing set
 - Experiment with training RNN models which given a paragraph recognize the classification label
   - Embed paragraphs as padded fixed width "480 word" windows
   - Each word is embedded into a 300 dimensional GloVe vector, via the arXMLiv GloVe embeddings
-  - Cap data at 1 million paragraphs per class, due to hardware limitations
 - Improve classification scheme
   - Learn from confusion matrixes to find strong separability, as well as linguistic nearness between the classes
-  - Reduce 28+other label target to 8+other label target,
-  - we regroup into classes with strong linguistic similarity,
-  - but thus increase the semantic ambiguity of the merged classes (e.g. `proposition` is a lot vaguer in purpose than its constituents `theorem` or `lemma`).
-- Arrive at a Keras `BiLSTM(128)→BiLSTM(64)→LSTM(64)` model, with a Dense(8) softmax output.
-- Report a 0.95 F1-score on the 8 label classification task. 
+  - Reduce 50 label target to 13 label target (comprised of 25 of the original classes)
+    - we regroup into classes with strong linguistic similarity,
+    - but thus increase the semantic ambiguity of the merged classes (e.g. `proposition` is a lot vaguer in purpose than its constituents `theorem` or `lemma`).
+- Arrive at a Keras `BiLSTM(128)→BiLSTM(64)→LSTM(64)` model, with a Dense(13) softmax output.
+- Report a 0.91 F1-score on the 13 label classification task. 
 
-# Experimental Design, 2018
+# Experimental Design, 2019
 
 Start with the 1.2 million documents from the arXMLiv 08.2018 dataset.
 
@@ -28,59 +27,81 @@ The initial survey is available as a [Google Spreadsheet](https://docs.google.co
 
 Analyzing the report suggests that 527 distinct `{environment}` names are used 100 or more times in arXiv (08.2017), and they cover 98% of all labeled paragraphs available. There is a huge long tail contributing the last 2% of paragraphs, totaling over 19,000 distinct names, which we mostly discard to avoid incurring unnecessary noise.
 
-We observe that the most frequent names can then be mapped into a smaller conceptual subset - 22 statement kinds in particular, as well as the "other" label for any labels that do not fit those classes. This selection has been codified in the [llamapun::ams::AmsEnv](https://github.com/KWARC/llamapun/blob/master/src/ams.rs#L108) datatype, and we cover the first ~1000 environment names, as mapped into the 23 targets.
+We observe that the most frequent names can then be mapped into a smaller conceptual subset - 44 statement kinds in particular, as well as the "other" label for any labels that do not fit those classes. This selection has been codified in the [llamapun::ams::AmsEnv](https://github.com/KWARC/llamapun/blob/8fe63ed148d6dacef7e544b966e88f73e9d86086/src/ams.rs#L122) datatype, and we cover the first ~1000 environment "nicknames", mapping them into the 44 targets.
 
-Additionally, we shortlist 11 of the "fixed meaning" headings in scientific documents as an extension to the labeled dataset, as codified in the [llamapun::ams::StructuralEnv](https://github.com/KWARC/llamapun/blob/master/src/ams.rs#L27) datatype.
+Additionally, we shortlist 12 of the "fixed meaning" headings in scientific documents as an extension to the labeled dataset, as codified in the [llamapun::ams::StructuralEnv](https://github.com/KWARC/llamapun/blob/8fe63ed148d6dacef7e544b966e88f73e9d86086/src/ams.rs#L28) datatype.
 
-Hence the final classes for the experiment, as collected by llamapun, are:
+Hence the final classes for the raw extracted data, as collected by llamapun, are:
 
 - AMS:
-    - "algorithm",
+    - "affirmation",
+    - "answer",
     - "assumption",
+    - "bound",
     - "case",
+    - "claim",
+    - "comment",
     - "condition",
     - "conjecture",
+    - "constraint",
+    - "convention",
     - "corollary",
+    - "criterion",
     - "definition", 
+    - "demonstration",
+    - "expansion",
+    - "experiment",
+    - "expectation",
+    - "explanation",
     - "fact",
+    - "hint",
+    - "issue",
     - "lemma",
     - "notation",
-    - "paragraph",
+    - "note",
+    - "notice",
+    - "observation",
+    - "principle",
     - "problem",
     - "proof",
     - "proposition",
     - "question", 
+    - "rule",
+    - "solution",
     - "step", 
+    - "summary",
     - "theorem"
 
 - Structural:
     - "abstract",
     - "conclusion",
-    - "discussion",
+    - "exercise",
     - "introduction",
     - "method",
+    - "overview",
     - "relatedwork",
 
 - Joint (both from AMS and Structural markup):
+    - "acknowledgement",
+    - "discussion",
     - "example",
-    - "caption",
+    - "keywords",
     - "remark",
     - "result",
-    - "acknowledgement",
 
-- Other: first paragraph under a heading, which has *no* AMS markup, and no known structural markup from the heading.
 
-This results in 22 named classes from AMS environments + 11 named structural classes, 5 of which collected jointly, for a total of **28 classification targets** (and "other"). 
+This results in 43 named classes from AMS environments + 13 named structural classes, 6 of which collected jointly, for a total of **50 distinct classification targets**.
 
 ## Representation
 
 Using llamapun's corpus traversal and (math-rich) plain-text normalization tools, we represent each paragraph as a space-separated sequence of alphanumeric words, where: 
  * Sentence and word tokenization over a logical paragraph are performed by llamapun, and are aware of display equations, as well as other structural markup
- * words are lowercased and stripped of non-alphanumeric characters
+ * words are lowercased and stripped of non-alphanumeric characters. Possesives are not currently split, so `It's` becomes `its`.
  * paragraphs with known latexml errors, or words longer than 25 characters (which are indicative of math mode errors) are discarded completely
  * several generic inline artefacts are normalized to generic replacements:
-   - numeric literals become `NUM`
+   - numeric literals become `NUM` (all caps)
    - citation markup becomes `citationelement`  
+   - `\ref` internal references become a `ref` placeholder word.
  * formulas are represented as a sequence of word lexemes (a feature of latexml), e.g. `x=0` becomes `italic_x RELOP_equals NUM`.
 
 An example definition would look like (indented line-breaks added for readability, these are 2 sentences, each being a single line):
@@ -103,7 +124,10 @@ an emd closeness tester is an algorithm which
 
 Collecting the data as induced by these filters results in obtaining 12,029,317 paragraph files from arXiv, each line of which contains a single sentence.
 
-## Experimental analysis
+**TODO: Continue updating from here**
+--- 
+
+## Experimental analysis (outdated -- to be renewed)
 
 At this point we can train a first few naive models on a subset of the data and obtain initial intuitions about the difficulties in classification. In particular, a very informative confusion matrix is:
 
