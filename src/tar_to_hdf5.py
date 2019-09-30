@@ -8,7 +8,7 @@ See BUILD EXAMPLE for details.
 """
 
 # No math run:
-# python3 src/ams_tar_to_hdf5.py ../GloVe/vocab_complete_nomath.txt / var/local/ams_paragraphs_arxmliv_08_2018_nomath.tar / var/local/ams_paragraphs_08_2018_nomath.hdf5
+# python3 src/ams_tar_to_hdf5.py data/vocab_nomath.txt /var/local/statement_paragraphs_arxmliv_08_2019_nomathtar /var/local/statement_paragraphs_arxmliv_08_2019_nomath.hdf5
 
 import os
 import numpy as np
@@ -17,12 +17,13 @@ import io
 import sys
 import tarfile
 import h5py
+import csv
 
 # Defaults
 vocab_file = "data/vocab.txt"
-ams_paragraph_model = "/var/local/ams_paragraphs_arxmliv_08_2018.tar"
-destination = "/var/local/ams_paragraphs_arxmliv_08_2018.hdf5"
-max_words = 480
+ams_paragraph_model = "/var/local/statement_paragraphs_arxmliv_08_2019.tar"
+destination = "/var/local/statement_paragraphs_arxmliv_08_2019.hdf5"
+max_words = 512
 
 argcount = len(sys.argv[1:])
 if argcount > 0:
@@ -33,30 +34,22 @@ if argcount > 0:
             destination = sys.argv[3]
             if argcount > 3:
                 max_words = int(sys.argv[4])
-
-# v1, v2
-# labels = sorted(["acknowledgement", "algorithm", "assumption", "caption", "case", "condition", "conjecture", "corollary", "definition", "example",
-#                  "fact", "lemma", "notation", "other", "paragraph", "problem", "proof", "proposition", "question", "remark", "result", "step", "theorem"])
-# v3 -- 29 classes whitelisted by llamapun, alphabetically sorted.
-#          each label is recorded via its numeric index in this array,
-#          so this source file is normative for mapping the final model back into label names.
-# v4 -- 49 classes whitelisted by llamapun, alphabetically sorted.
 labels = sorted([
-    "abstract", "acknowledgement", "affirmation", "answer", "assumption",
-    "bound", "case", "claim", "comment", "conclusion",
-    "condition", "conjecture", "constraint", "convention", "corollary",
-    "criterion", "definition", "demonstration", "discussion", "example",
-    "exercise", "expansion", "expectation", "experiment", "explanation",
-    "fact", "hint", "introduction", "issue", "keywords",
-    "lemma", "method", "notation", "note", "notice",
-    "observation", "overview", "principle", "problem", "proof",
-    "proposition", "question", "relatedwork", "remark", "result", "rule",
-    "solution", "step", "summary", "theorem"])
+    "abstract", "acknowledgement", "analysis", "application", "assumption",
+    "background", "caption", "case", "claim", "conclusion", "condition",
+    "conjecture", "contribution", "corollary", "data", "dataset",
+    "definition", "demonstration", "description", "discussion", "example",
+    "experiment", "fact", "future work", "implementation", "introduction",
+    "lemma", "methods", "model", "motivation", "notation", "observation",
+    "preliminaries", "problem", "proof", "property", "proposition",
+    "question", "related work", "remark", "result", "simulation", "step",
+    "summary", "theorem", "theory", ])
 
 # w_index is an in-memory loaded vocabulary, produced alongside the GloVe embeddings of a corpus
 #    which we use to map the plaintext words into their respective autoincremented *vocabulary index*
 vocab_lines = open(vocab_file, "r").readlines()
-w_index = {}
+unk_index = len(vocab_lines)+1
+w_index = {"<unk>": unk_index}
 for v_index, line in enumerate(vocab_lines):
     # offset by 1 as the array starts with 0
     w_index[line.split()[0]] = v_index + 1
@@ -115,11 +108,9 @@ while True:
         if word in w_index:
             # Convert word to numeric index
             w_val.extend([w_index[word]])
-        # else:
-            # Should we drop words unseen by the vocabulary, or use an unknown word instead?
-            # Drop for now, -1 could be an alternative
-            # w_val.append(-1)
-            # print("unk: ", word)
+        else:
+            # <unk> for out-of-vocabulary words
+            w_val.append(unk_index)
     # Only record sentences with at least one word
     # (this was added after testing and realizing there are sentences with all words unknown to w_index)
     paragraph_length = len(w_val)
@@ -212,5 +203,12 @@ for label in labels:
 print("---")
 print("total collected paragraphs: ", paragraph_index)
 print("---")
-print(" word length report")
-print(word_length_report)
+
+
+with open('paragraph_size_report.csv', 'w') as csvfile:
+    filewriter = csv.writer(csvfile, delimiter=',',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    filewriter.writerow(['Word Length', 'Paragraphs in Dataset'])
+    for (k, v) in sorted(word_length_report.items(), key=lambda x: -x[1]):
+        filewriter.writerow([k, v])
+print("saved size statistics to paragraph_size_report.csv")
