@@ -10,8 +10,8 @@ import json
 import sys
 
 vocab_file = "data/vocab.txt"
-word_index_destination = "./data/word_index.json"
-label_index_destination = "./data/label_index.json"
+word_index_destination = "./data/word_index_2019.json"
+label_index_destination = "./data/label_index_2019.json"
 
 argcount = len(sys.argv[1:])
 if argcount > 0:
@@ -32,18 +32,17 @@ open(word_index_destination, "w").write(w_json)
 
 # TODO: These are also hardcoded in tar_to_hdf5,
 # I need to move them out in a contant json asset
-# v4 -- 49 classes whitelisted by llamapun, alphabetically sorted.
+# 2019 -- 46 classes whitelisted by llamapun, alphabetically sorted.
 labels = sorted([
-    "abstract", "acknowledgement", "affirmation", "answer", "assumption",
-    "bound", "case", "claim", "comment", "conclusion",
-    "condition", "conjecture", "constraint", "convention", "corollary",
-    "criterion", "definition", "demonstration", "discussion", "example",
-    "exercise", "expansion", "expectation", "experiment", "explanation",
-    "fact", "hint", "introduction", "issue", "keywords",
-    "lemma", "method", "notation", "note", "notice",
-    "observation", "overview", "principle", "problem", "proof",
-    "proposition", "question", "relatedwork", "remark", "result", "rule",
-    "solution", "step", "summary", "theorem"])
+    "abstract", "acknowledgement", "analysis", "application", "assumption",
+    "background", "caption", "case", "claim", "conclusion", "condition",
+    "conjecture", "contribution", "corollary", "data", "dataset",
+    "definition", "demonstration", "description", "discussion", "example",
+    "experiment", "fact", "future work", "implementation", "introduction",
+    "lemma", "methods", "model", "motivation", "notation", "observation",
+    "preliminaries", "problem", "proof", "property", "proposition",
+    "question", "related work", "remark", "result", "simulation", "step",
+    "summary", "theorem", "theory", ])
 
 label_index = {}
 for l_ind, label in enumerate(labels):
