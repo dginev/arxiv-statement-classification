@@ -48,6 +48,7 @@ labels = sorted([
 # w_index is an in-memory loaded vocabulary, produced alongside the GloVe embeddings of a corpus
 #    which we use to map the plaintext words into their respective autoincremented *vocabulary index*
 vocab_lines = open(vocab_file, "r").readlines()
+# 989,136+1 = 989,137 for the distributed 2019 GloVe embeddings
 unk_index = len(vocab_lines)+1
 w_index = {"<unk>": unk_index}
 for v_index, line in enumerate(vocab_lines):
