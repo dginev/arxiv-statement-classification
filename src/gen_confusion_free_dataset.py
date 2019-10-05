@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" Reduces the 49 class dataset from arXiv down to the confusion-motivated 12 classes (based on 24 of the original labels)
+""" Reduces the 46 class dataset from arXiv down to the confusion-motivated 20 classes
 
 Use: python3 src/gen_confusion_free_dataset.py
 
@@ -17,46 +17,62 @@ import sys
 # We run `Pre-analysis BiLSTM Confusion Matrix.ipynb`
 
 # Confusion matrix obtained during pre-analysis
-original_class_names = [
-    'abstract', 'acknowledgement', 'affirmation', 'answer', 'assumption', 'bound',
-    'case', 'claim', 'comment', 'conclusion', 'condition', 'conjecture',
-    'constraint', 'convention', 'corollary', 'criterion', 'definition',
-    'demonstration', 'discussion', 'example', 'exercise', 'expansion',
-    'expectation', 'experiment', 'explanation', 'fact', 'hint', 'introduction',
-    'issue', 'keywords', 'lemma', 'method', 'notation', 'note', 'notice',
-    'observation', 'overview', 'principle', 'problem', 'proof', 'proposition',
-    'question', 'relatedwork', 'remark', 'result', 'rule', 'solution', 'step', 'summary', 'theorem']
+original_class_names = sorted([
+    "abstract", "acknowledgement", "analysis", "application", "assumption",
+    "background", "caption", "case", "claim", "conclusion", "condition",
+    "conjecture", "contribution", "corollary", "data", "dataset",
+    "definition", "demonstration", "description", "discussion", "example",
+    "experiment", "fact", "future work", "implementation", "introduction",
+    "lemma", "methods", "model", "motivation", "notation", "observation",
+    "preliminaries", "problem", "proof", "property", "proposition",
+    "question", "related work", "remark", "result", "simulation", "step",
+    "summary", "theorem", "theory"])
 
-reduced_class_names = [
-    'abstract', 'acknowledgement', 'conclusion', 'definition', 'example',
-    'introduction', 'keywords', 'proof', 'proposition', 'problem', 'relatedwork', 'remark', 'result']
+reduced_class_names = sorted([
+    'abstract', 'acknowledgement', 'caption', 'conclusion', 'contribution', 'definition', 'example',
+    'experiment', 'introduction', 'model', 'notation', 'observation', 'problem', 'proof', 'proposition',
+    'question', 'related work', 'remark', 'result', 'simulation'])
 
 confusion_map_names = {
     "abstract": "abstract",
     "acknowledgement": "acknowledgement",
-    "conclusion": "conclusion",
-    "discussion": "conclusion",
-    "definition": "definition",
-    "example": "example",
-    "introduction": "introduction",
-    "keywords": "keywords",
-    "proof": "proof",
-    "demonstration": "proof",
-    "lemma": "proposition",
-    "theorem": "proposition",
-    "proposition": "proposition",
     "assumption": "proposition",
-    "condition": "proposition",
-    "fact": "proposition",
-    "conjecture": "proposition",
+    "background": "introduction",
+    "caption": "caption",
+    "case": "proof",
     "claim": "proposition",
+    "conclusion": "conclusion",
+    "conjecture": "proposition",
+    "contribution": "contribution",
     "corollary": "proposition",
-    "question": "problem",
+    "data": "observation",
+    "dataset": "experiment",
+    "definition": "definition",
+    "demonstration": "proof",
+    "discussion": "conclusion",
+    "example": "example",
+    "experiment": "experiment",
+    "fact": "proposition",
+    "future work": "conclusion",
+    "implementation": "experiment",
+    "introduction": "introduction",
+    "lemma": "proposition",
+    "model": "model",
+    "motivation": "introduction",
+    "notation": "notation",
+    "observation": "observation",
     "problem": "problem",
-    "relatedwork": "relatedwork",
+    "proof": "proof",
+    "proposition": "proposition",
+    "question": "question",
+    "related work": "related work",
     "remark": "remark",
-    "note": "remark",
-    "result": "result"
+    "result": "result",
+    "simulation": "simulation",
+    "step": "proof",
+    "summary": "conclusion",
+    "theorem": "proposition",
+    "theory": "model",
 }
 
 confusion_map = {}
@@ -65,8 +81,8 @@ for k, v in confusion_map_names.items():
 
 # Ok, now that we have the confusion map. we need to remap and rewrite the HDF5 data.
 # We do this once here so that we can quickly train models afterwards, rather than having to recompute the map each time
-input_filename = "data/statement_paragraphs.hdf5"
-output_filename = "data/confusion_free_statements.hdf5"
+input_filename = "data/statement_paragraphs_arxmliv_08_2019.hdf5"
+output_filename = "/var/local/20_class_statements_arxmliv_08_2019.hdf5"
 
 argcount = len(sys.argv[1:])
 if argcount > 0:
@@ -78,13 +94,11 @@ data_hf = h5py.File(input_filename, 'r')
 
 # Need: Big chunks for quick continuous access, but still be able to fit the process in average RAM
 chunk_size = 100_000  # tune this by hand for smaller data.
-max_words = 480  # explicit, to fail loudly if something changes
-new_fp = h5py.File(output_filename, "w")
-
+max_words = 512  # explicit, to fail loudly if something changes
 
 total_train_size = 0
 total_test_size = 0
-
+# -- scan new dataset sizes
 print("Original train size: %d " % data_hf["y_train"].shape[0])
 index = 0
 for label in data_hf["y_train"]:
@@ -108,6 +122,8 @@ for label in data_hf["y_test"]:
                   (total_test_size, index))
 
 print("New test size: %d " % total_test_size)
+# -- end of scan
+new_fp = h5py.File(output_filename, "w")
 
 x_train = new_fp.create_dataset("x_train", (total_train_size, max_words), maxshape=(
     None, max_words), chunks=(chunk_size, max_words), dtype="int")
