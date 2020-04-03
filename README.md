@@ -11,7 +11,7 @@ For a high level overview of the task setup, see [Experiment Setup](doc/Experime
  - [x] Finalize and deploy showcase ([repository](https://github.com/dginev/showcase-statement-classification) and [live demo](https://corpora.mathweb.org/classify_paragraph))
  - [x] Write up and submit [a description of the project](https://arxiv.org/abs/1908.10993).
  - [x] Finalize and publish paragraph dataset over arXMLiv 08.2018 (under the [SigMathLing](https://sigmathling.kwarc.info/resources/) umbrella) - [done](https://sigmathling.kwarc.info/resources/arxmliv-statements-082018/)
- - [ ] Proceedings submission (by end of 2019)
+ - [x] Proceedings submission (by end of 2019) -- [accepted at LREC2020](https://lrec2020.lrec-conf.org/en/conference-programme/accepted-papers/)
 
 # Build Steps
 
